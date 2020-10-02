@@ -1,7 +1,6 @@
 package id
 
 import (
-	"math/big"
 	"math/rand"
 	"sync/atomic"
 	"time"
@@ -44,7 +43,5 @@ func GetUIDFromCounter(counter int64) int64 {
 
 func GetUID() int64 {
 	seq := atomic.AddInt64(&counter, 1) & MAXSEQUECE
-	bint := new(big.Int)
-	big.NewInt()
 	return GetUIDFromNodeCounter(rand.Int63n(1024), seq)
 }
