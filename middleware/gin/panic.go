@@ -16,7 +16,7 @@ func Recovery(l logger) gin.HandlerFunc {
 			if r := recover(); r != nil {
 				_ctx, _ := c.Get("context")
 				ctx := _ctx.(context.Context)
-				l.Log(ctx, logrus.Fields{
+				l.WriteLogs(ctx, logrus.Fields{
 					"params": fmt.Sprintf("%v\n%s", r, debug.Stack()),
 				}, logrus.FatalLevel, "Panic")
 				c.JSON(http.StatusExpectationFailed, map[string]interface{}{
