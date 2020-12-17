@@ -12,7 +12,7 @@ import (
 // var logger func(context.Context, logrus.Fields, logrus.Level, string)
 
 type logger interface {
-	Log(context.Context, logrus.Fields, logrus.Level, string)
+	Log(context.Context, logrus.Fields, logrus.Level, string, ...interface{})
 }
 
 func PostJSONValidator(l logger) gin.HandlerFunc {
