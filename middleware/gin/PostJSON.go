@@ -12,7 +12,7 @@ import (
 // var logger func(context.Context, logrus.Fields, logrus.Level, string)
 
 type logger interface {
-	Log(context.Context, logrus.Fields, logrus.Level, string, ...interface{})
+	WriteLogs(context.Context, logrus.Fields, logrus.Level, string, ...interface{})
 }
 
 func PostJSONValidator(l logger) gin.HandlerFunc {
@@ -29,7 +29,7 @@ func PostJSONValidator(l logger) gin.HandlerFunc {
 		}
 		if err != nil {
 			fields["errorMsg"] = error.Error(err)
-			l.Log(ctx, fields, logrus.ErrorLevel, "bad_json")
+			l.WriteLogs(ctx, fields, logrus.ErrorLevel, "bad_json")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
 				"error":   error.Error(err),
