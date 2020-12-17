@@ -38,7 +38,7 @@ func PostJSONValidator(l logger) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		l.Log(ctx, fields, logrus.InfoLevel, "request_json")
+		l.WriteLogs(ctx, fields, logrus.InfoLevel, "request_json")
 		c.Set("jsonByte", byteData)
 	}
 }
