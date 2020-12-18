@@ -26,25 +26,6 @@ import (
 )
 
 const (
-	// LOGPANIC level, highest level of severity. Logs and then calls panic with the
-	// message passed to Debug, Info, ...
-	LOGPANIC logrus.Level = iota
-	// LOGFATAL level. Logs and then calls `logger.Exit(1)`. It will exit even if the
-	// logging level is set to Panic.
-	LOGFATAL
-	// LOGERROR level. Logs. Used for errors that should definitely be noted.
-	// Commonly used for hooks to send errors to an error tracking service.
-	LOGERROR
-	// LOGWARN level. Non-critical entries that deserve eyes.
-	LOGWARN
-	// LOGINFO level. General operational entries about what's going on inside the
-	// application.
-	LOGINFO
-	// LOGDEBUG level. Usually only enabled when debugging. Very verbose logging.
-	LOGDEBUG
-	// LOGTRACE level. Designates finer-grained informational events than the Debug.
-	LOGTRACE
-
 	timeFormat = "02/Jan/2006:15:04:05 -0700"
 )
 
@@ -82,6 +63,8 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 	pc, file, line, _ := runtime.Caller(1)
 	_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
 	file = strings.ReplaceAll(file, dLogger.Lops.WD, "")
+	file = strings.Trim(file, " ")
+	funcname = strings.Trim(funcname, " ")
 	corRelationID := ctx.Value(dLogger.Lops.COREL).(map[string]interface{})
 	for idx := range fields {
 		switch fields[idx].(type) {
@@ -105,20 +88,7 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 	fields["requestID"] = corRelationID["requestID"]
 	fields["sessionID"] = corRelationID["sessionID"]
 	entry := dLogger.Logger.WithFields(fields)
-	switch cb {
-	case LOGERROR:
-		entry.Error(MessageKey)
-	case LOGWARN:
-		entry.Warn(MessageKey)
-	case LOGINFO:
-		entry.Info(MessageKey)
-	case LOGFATAL:
-		entry.Log(logrus.FatalLevel, MessageKey)
-	case LOGPANIC:
-		entry.Log(logrus.PanicLevel, MessageKey)
-	default:
-		entry.Fatal(MessageKey)
-	}
+	entry.Log(cb, MessageKey)
 }
 
 //InitLogger ...
