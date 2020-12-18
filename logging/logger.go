@@ -52,8 +52,6 @@ const (
 type DPLogger struct {
 	Lops   LoggerOptions
 	Logger *logrus.Logger
-	APP    string
-	LOGENV string
 }
 
 //KibanaConfig Mandatory for kibana logging
@@ -61,7 +59,8 @@ type KibanaConfig struct {
 	Client,
 	AccessKey,
 	SecretKey,
-	APPID string
+	APPID,
+	Hostname string
 }
 
 //LoggerOptions is set of config data for logg
@@ -124,6 +123,13 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 
 //InitLogger ...
 func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
+	if lops.Hostname == "" {
+		if x, err := os.Hostname(); err != nil {
+			lops.Hostname = "unknown"
+		} else {
+			lops.Hostname = x
+		}
+	}
 	if lops == nil {
 		return nil, errors.New("invalid logger options")
 	}
@@ -166,7 +172,7 @@ func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
 			log.Panic(err)
 			return nil, err
 		}
-		hook, err = elogrus.NewAsyncElasticHook(client, "", logrus.DebugLevel, os.Getenv("APP"))
+		hook, err = elogrus.NewAsyncElasticHook(client, "", logrus.DebugLevel, lops.APP)
 		if err != nil {
 			log.Panic(err)
 			return nil, err
@@ -176,7 +182,7 @@ func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
 	if lops.LOGENV != "DEV" {
 		log.Out = ioutil.Discard
 	}
-	return &DPLogger{Logger: log, APP: os.Getenv("APP"), Lops: *lops}, nil
+	return &DPLogger{Logger: log, Lops: *lops}, nil
 }
 
 func newElasticClient(kibops *KibanaConfig) (*elastic.Client, error) {
@@ -216,10 +222,6 @@ func newElasticClient(kibops *KibanaConfig) (*elastic.Client, error) {
 
 //GinLogger ...
 func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = "unknown"
-	}
 	return func(c *gin.Context) {
 		// other handler can change c.Path so:
 		path := c.Request.URL.Path
@@ -247,7 +249,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		clientUserAgent := c.Request.UserAgent()
 		referer := c.Request.Referer()
 		entryLog := dLogger.Logger.WithFields(logrus.Fields{
-			"hostname":  hostname,
+			"hostname":  dLogger.Lops.Hostname,
 			"clientIP":  clientIP,
 			"method":    c.Request.Method,
 			"path":      path,
@@ -267,7 +269,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		}
 
 		entry := dLogger.Logger.WithFields(logrus.Fields{
-			"hostname":   hostname,
+			"hostname":   dLogger.Lops.Hostname,
 			"statusCode": statusCode,
 			"latency":    latency, // time to process
 			"clientIP":   clientIP,
