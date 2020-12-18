@@ -3,6 +3,7 @@ package logging
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -123,6 +124,9 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 
 //InitLogger ...
 func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
+	if lops == nil {
+		return nil, errors.New("invalid logger options")
+	}
 	var hook logrus.Hook
 	var err error
 	log := logrus.New()
@@ -172,7 +176,7 @@ func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
 	if lops.LOGENV != "DEV" {
 		log.Out = ioutil.Discard
 	}
-	return &DPLogger{Logger: log, APP: os.Getenv("APP")}, nil
+	return &DPLogger{Logger: log, APP: os.Getenv("APP"), Lops: *lops}, nil
 }
 
 func newElasticClient(kibops *KibanaConfig) (*elastic.Client, error) {
