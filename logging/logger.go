@@ -44,8 +44,6 @@ const (
 	// LOGTRACE level. Designates finer-grained informational events than the Debug.
 	LOGTRACE
 
-	//CorRelationID ...
-	CorRelationID
 	timeFormat = "02/Jan/2006:15:04:05 -0700"
 )
 
@@ -72,6 +70,7 @@ type LoggerOptions struct {
 	APPID, // Service application ID
 	LOGENV, // Dev/Debug/Production
 	WD string // Working directory of the application
+	COREL interface{}
 }
 
 //WriteLogs ...
@@ -83,7 +82,7 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 	pc, file, line, _ := runtime.Caller(1)
 	_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
 	file = strings.ReplaceAll(file, dLogger.Lops.WD, "")
-	corRelationID := ctx.Value(CorRelationID).(map[string]interface{})
+	corRelationID := ctx.Value(dLogger.Lops.COREL).(map[string]interface{})
 	for idx := range fields {
 		switch fields[idx].(type) {
 		case int8, int16, int32, int64, int,
@@ -234,7 +233,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		}
 		c.Set("requestID", requestID)
 		c.Set("sessionID", sessionID)
-		ctx := context.WithValue(c, CorRelationID,
+		ctx := context.WithValue(c, dLogger.Lops.COREL,
 			map[string]interface{}{
 				"requestID": requestID,
 				"sessionID": sessionID,
