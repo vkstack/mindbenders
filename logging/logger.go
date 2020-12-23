@@ -84,7 +84,7 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 		fields[fmt.Sprintf("field_%d", idx)] = args[idx]
 	}
 	fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
-	fields["appid"] = dLogger.Lops.APPID
+	fields["appID"] = dLogger.Lops.APPID
 	fields["requestID"] = corRelationID["requestID"]
 	fields["sessionID"] = corRelationID["sessionID"]
 	entry := dLogger.Logger.WithFields(fields)
