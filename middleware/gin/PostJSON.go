@@ -7,15 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/dotpe/mindbenders/interfaces"
 )
 
 // var logger func(context.Context, logrus.Fields, logrus.Level, string)
 
-type logger interface {
-	WriteLogs(context.Context, logrus.Fields, logrus.Level, string, ...interface{})
-}
-
-func PostJSONValidator(l logger) gin.HandlerFunc {
+func PostJSONValidator(l interfaces.ILogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var jsonData interface{}
 		byteData, _ := c.GetRawData()
