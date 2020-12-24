@@ -8,9 +8,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/dotpe/mindbenders/interfaces"
 )
 
-func Recovery(l logger) gin.HandlerFunc {
+func Recovery(l interfaces.ILogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
