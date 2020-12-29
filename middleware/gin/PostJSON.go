@@ -1,8 +1,10 @@
 package gin
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,8 +16,12 @@ import (
 
 func PostJSONValidator(l interfaces.ILogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var byteData []byte
+		if c.Request.Body != nil {
+			byteData, _ = ioutil.ReadAll(c.Request.Body)
+		}
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(byteData))
 		var jsonData interface{}
-		byteData, _ := c.GetRawData()
 		err := json.Unmarshal(byteData, &jsonData)
 		ictx, _ := c.Get("context")
 		ctx := ictx.(context.Context)
@@ -25,8 +31,6 @@ func PostJSONValidator(l interfaces.ILogger) gin.HandlerFunc {
 			"path":     c.Request.URL.Path,
 		}
 		if err != nil {
-			fields["errorMsg"] = error.Error(err)
-			l.WriteLogs(ctx, fields, logrus.ErrorLevel, "bad_json")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
 				"error":   error.Error(err),
