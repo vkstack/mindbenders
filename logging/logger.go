@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -196,7 +197,6 @@ func newElasticClient(kibops *KibanaConfig) (*elastic.Client, error) {
 func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// other handler can change c.Path so:
-		path := c.Request.URL.Path
 		start := time.Now()
 		var sessionID, requestID string
 		if _, ok := c.Request.Header["Session_id"]; !ok || len(c.Request.Header["Session_id"]) == 0 { // Handling OPTIONS request
@@ -217,55 +217,51 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 				"sessionID": sessionID,
 			})
 		c.Set("context", ctx)
-		clientIP := c.ClientIP()
-		clientUserAgent := c.Request.UserAgent()
-		referer := c.Request.Referer()
-		entryLog := dLogger.Logger.WithFields(logrus.Fields{
+		fields := logrus.Fields{
+			"referer":   c.Request.Referer(),
+			"clientIP":  c.ClientIP(),
+			"host":      c.Request.Host,
 			"hostname":  dLogger.Lops.Hostname,
-			"clientIP":  clientIP,
 			"method":    c.Request.Method,
-			"path":      path,
-			"caller":    referer,
-			"userAgent": clientUserAgent,
+			"path":      c.Request.URL.Path,
+			"query":     c.Request.URL.RawQuery,
 			"requestID": requestID,
 			"sessionID": sessionID,
-		})
-		entryLog.Info("Request Initiated")
+			"userAgent": c.Request.UserAgent(),
+		}
+
+		var level = new(logrus.Level)
+		*level = logrus.InfoLevel
+
+		//deferred request log
+		defer dLogger.WriteLogs(ctx, fields, *level, "access-log")
+		var bodyBytes []byte
+		if c.Request.Body != nil {
+			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+			fields["requestBody"] = string(bodyBytes)
+		}
+		// Restore the io.ReadCloser to its original state
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
 		c.Next()
 		stop := time.Since(start)
-		latency := int(math.Ceil(float64(stop.Nanoseconds()) / 1000000.0))
-		statusCode := c.Writer.Status()
+		fields["latency"] = int(math.Ceil(float64(stop.Nanoseconds()) / 1000000.0))
+		code := c.Writer.Status()
+
+		fields["code"] = code
 		dataLength := c.Writer.Size()
 		if dataLength < 0 {
 			dataLength = 0
 		}
-
-		entry := dLogger.Logger.WithFields(logrus.Fields{
-			"hostname":   dLogger.Lops.Hostname,
-			"statusCode": statusCode,
-			"latency":    latency, // time to process
-			"clientIP":   clientIP,
-			"method":     c.Request.Method,
-			"path":       path,
-			"host":       c.Request.Host,
-			"caller":     referer,
-			"dataLength": dataLength,
-			"userAgent":  clientUserAgent,
-			"requestID":  requestID,
-			"sessionID":  sessionID,
-		})
+		fields["dataLength"] = dataLength
 
 		if len(c.Errors) > 0 {
-			entry.Error(c.Errors.ByType(gin.ErrorTypePrivate).String())
-		} else {
-			msg := "Request Completed"
-			if statusCode > 499 {
-				entry.Error(msg)
-			} else if statusCode > 399 {
-				entry.Warn(msg)
-			} else {
-				entry.Info(msg)
-			}
+			fields["error"] = c.Errors.ByType(gin.ErrorTypePrivate).String()
+			*level = logrus.ErrorLevel
+		} else if code > 499 {
+			*level = logrus.ErrorLevel
+		} else if code > 399 {
+			*level = logrus.WarnLevel
 		}
 	}
 }
