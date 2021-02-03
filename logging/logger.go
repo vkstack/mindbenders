@@ -243,12 +243,13 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		// Restore the io.ReadCloser to its original state
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
+		fields["statusCode"] = 0
 		c.Next()
 		stop := time.Since(start)
 		fields["latency"] = int(math.Ceil(float64(stop.Nanoseconds()) / 1000000.0))
 		code := c.Writer.Status()
 
-		fields["code"] = code
+		fields["statusCode"] = code
 		dataLength := c.Writer.Size()
 		if dataLength < 0 {
 			dataLength = 0
