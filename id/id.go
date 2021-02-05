@@ -2,46 +2,33 @@ package id
 
 import (
 	"math/rand"
-	"sync/atomic"
-	"time"
+	"sync"
+
+	"github.com/bwmarrin/snowflake"
 )
 
 const (
-	UNUSEDBITS   = 1
-	EPOCHBITS    = 41
-	NODEIDBITS   = 10
-	SEQUENCEBITS = 12
-
-	MAXNODEID  = 1023
-	MAXSEQUECE = 4095
-
-	// miliseconnds for "2019-07-23"
-	CUSTOMEPOCH int64 = 1563840000000
+//Miliseconnds for "2019-07-23"
+//Never Fuck-up whith this number	CUSTOMEPOCH int64 = 1612137600000
 )
 
-var counter int64 = 0
+var node *snowflake.Node
+var once sync.Once
 
-// GetUIDFromNodeCounter sh
-func GetUIDFromNodeCounter(nodeID, counter int64) int64 {
-	nowmili := time.Now().UnixNano() / 1e6
-	customMili := nowmili - CUSTOMEPOCH
-	nodeID &= MAXNODEID
-	var id int64 = (customMili) << (NODEIDBITS + SEQUENCEBITS)
-	id |= (int64(nodeID << SEQUENCEBITS))
-	id |= int64(counter)
-	return id
+func SetNode(nodeID int64) (err error) {
+	snowflake.Epoch = CUSTOMEPOCH
+	node, err = snowflake.NewNode(nodeID)
+	return
 }
 
-func GetUIDFromNode(nodeID int64) int64 {
-	seq := atomic.AddInt64(&counter, 1) & MAXSEQUECE
-	return GetUIDFromNodeCounter(nodeID, seq)
+func defaultInit() {
+	SetNode(rand.Int63n(1024))
 }
 
-func GetUIDFromCounter(counter int64) int64 {
-	return GetUIDFromNodeCounter(rand.Int63n(1024), counter)
-}
-
+//GetUID this method returns snowflake nuique id
 func GetUID() int64 {
-	seq := atomic.AddInt64(&counter, 1) & MAXSEQUECE
-	return GetUIDFromNodeCounter(rand.Int63n(1024), seq)
+	if node == nil {
+		once.Do(defaultInit)
+	}
+	return node.Generate().Int64()
 }

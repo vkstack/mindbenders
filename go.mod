@@ -3,6 +3,7 @@ module gitlab.com/dotpe/mindbenders
 go 1.13
 
 require (
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/olivere/elastic/v7 v7.0.4
