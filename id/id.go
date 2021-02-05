@@ -8,8 +8,9 @@ import (
 )
 
 const (
-//Miliseconnds for "2019-07-23"
-//Never Fuck-up whith this number	CUSTOMEPOCH int64 = 1612137600000
+	//Miliseconnds for "2019-07-23"
+	//Never Fuck-up whith this number
+	CUSTOMEPOCH int64 = 1612137600000
 )
 
 var node *snowflake.Node
