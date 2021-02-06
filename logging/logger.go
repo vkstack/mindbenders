@@ -56,7 +56,7 @@ type LoggerOptions struct {
 	DisableJSONLogging bool
 }
 
-//WriteLogs ...
+//WriteLogs writes log
 func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{}) {
 	if ctx == nil {
 		return
@@ -95,7 +95,8 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 	entry.Log(cb, MessageKey)
 }
 
-//InitLogger ...
+//InitLogger sets up the logger object with LoeggerOptions provided.
+//It returns reference logger object and error
 func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
 	if lops.Hostname == "" {
 		if x, err := os.Hostname(); err != nil {
@@ -194,7 +195,7 @@ func newElasticClient(kibops *KibanaConfig) (*elastic.Client, error) {
 	return client, nil
 }
 
-//GinLogger ...
+//GinLogger returns a gin.HandlerFunc middleware
 func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// other handler can change c.Path so:

@@ -16,6 +16,7 @@ const (
 var node *snowflake.Node
 var once sync.Once
 
+//SetNode create a snowflake node.
 func SetNode(nodeID int64) (err error) {
 	snowflake.Epoch = CUSTOMEPOCH
 	node, err = snowflake.NewNode(nodeID)
