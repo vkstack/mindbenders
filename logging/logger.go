@@ -52,7 +52,8 @@ type LoggerOptions struct {
 	APPID, // Service application ID
 	LOGENV, // Dev/Debug/Production
 	WD string // Working directory of the application
-	COREL interface{}
+	COREL              interface{}
+	DisableJSONLogging bool
 }
 
 //WriteLogs ...
@@ -236,7 +237,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		//deferred request log
 		defer dLogger.WriteLogs(ctx, fields, *level, "access-log")
 		var bodyBytes []byte
-		if c.Request.Body != nil {
+		if c.Request.Body != nil && !dLogger.Lops.DisableJSONLogging {
 			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
 			fields["requestBody"] = string(bodyBytes)
 		}

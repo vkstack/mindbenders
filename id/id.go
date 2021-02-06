@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	//Miliseconnds for "2019-07-23"
+	//Miliseconnds for "2021-01-01"
 	//Never Fuck-up whith this number
 	CUSTOMEPOCH int64 = 1612137600000
 )
