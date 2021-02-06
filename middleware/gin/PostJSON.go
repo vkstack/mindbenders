@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//PostJSONValidator validates a valid JSON in gin.Context
 func PostJSONValidator(c *gin.Context) {
 	var byteData []byte
 	if c.Request.Body != nil {

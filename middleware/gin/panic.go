@@ -11,6 +11,7 @@ import (
 	"gitlab.com/dotpe/mindbenders/interfaces"
 )
 
+//Recovery returns a gin.HandlerFunc having recovery solution
 func Recovery(l interfaces.ILogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {

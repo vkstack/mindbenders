@@ -7,9 +7,11 @@ import (
 )
 
 var (
+	//Base ...
 	// CharacterSet consists of 62 characters [0-9][A-Z][a-z].
-	Base         int64 = 62
-	CharacterSet       = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	Base int64 = 62
+	//CharacterSet ...
+	CharacterSet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 )
 
 // Encode returns a base62 representation as
