@@ -48,13 +48,13 @@ type KibanaConfig struct {
 // type
 var corel interface{} = "corel"
 
-//GetCORELKey ...
-func GetCORELKey() interface{} {
+//GetCorelLKey ...
+func GetCorelLKey() interface{} {
 	return corel
 }
 
-//CorelDatum correlationData
-type CorelDatum struct {
+//CorelationID correlationData
+type CorelationID struct {
 	RequestID string `json:"requestID"`
 	SessionID string `json:"sessionID"`
 }
@@ -80,7 +80,7 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 	file = strings.ReplaceAll(file, dLogger.Lops.WD, "")
 	file = strings.Trim(file, " ")
 	funcname = strings.Trim(funcname, " ")
-	corRelationID := ctx.Value(corel).(CorelDatum)
+	corRelationID := ctx.Value(corel).(CorelationID)
 	for idx := range fields {
 		switch fields[idx].(type) {
 		case int8, int16, int32, int64, int,
@@ -226,7 +226,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		}
 		c.Set("requestID", requestID)
 		c.Set("sessionID", sessionID)
-		ctx := context.WithValue(c, corel, CorelDatum{RequestID: requestID, SessionID: sessionID})
+		ctx := context.WithValue(c, corel, CorelationID{RequestID: requestID, SessionID: sessionID})
 		c.Set("context", ctx)
 		fields := logrus.Fields{
 			"referer":   c.Request.Referer(),
