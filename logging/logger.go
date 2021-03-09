@@ -23,6 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	awsauth "github.com/smartystreets/go-aws-auth"
 	"github.com/snowzach/rotatefilehook"
+	"gitlab.com/dotpe/mindbenders/corel"
 	"gopkg.in/sohlich/elogrus.v7"
 )
 
@@ -46,21 +47,6 @@ type KibanaConfig struct {
 }
 
 // type
-var corel interface{} = time.Now()
-
-//CoRelationId correlationData
-type CoRelationId struct {
-	RequestID string `json:"requestID"`
-	SessionID string `json:"sessionID"`
-}
-
-//GetCorelationId ...
-func GetCorelationId(ctx context.Context) (CoRelationId, error) {
-	if corelid, ok := ctx.Value(corel).(CoRelationId); ok {
-		return corelid, nil
-	}
-	return CoRelationId{}, fmt.Errorf("invalid corelationId")
-}
 
 //LoggerOptions is set of config data for logg
 type LoggerOptions struct {
@@ -83,7 +69,7 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 	file = strings.ReplaceAll(file, dLogger.Lops.WD, "")
 	file = strings.Trim(file, " ")
 	funcname = strings.Trim(funcname, " ")
-	coRelationID := ctx.Value(corel).(CoRelationId)
+	coRelationID, _ := corel.GetCorelationId(ctx)
 	for idx := range fields {
 		switch fields[idx].(type) {
 		case int8, int16, int32, int64, int,
@@ -229,7 +215,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		}
 		c.Set("requestID", requestID)
 		c.Set("sessionID", sessionID)
-		ctx := context.WithValue(c, corel, CoRelationId{RequestID: requestID, SessionID: sessionID})
+		ctx := context.WithValue(c, corel.GetCorelKey(), corel.CoRelationId{RequestID: requestID, SessionID: sessionID})
 		c.Set("context", ctx)
 		fields := logrus.Fields{
 			"referer":   c.Request.Referer(),
