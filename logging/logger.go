@@ -48,15 +48,23 @@ type KibanaConfig struct {
 // type
 var corel interface{} = "corel"
 
-//GetCorelLKey ...
-func GetCorelLKey() interface{} {
+//GetCorelKey ...
+func GetCorelKey() interface{} {
 	return corel
 }
 
-//CorelationID correlationData
-type CorelationID struct {
+//CoRelationId correlationData
+type CoRelationId struct {
 	RequestID string `json:"requestID"`
 	SessionID string `json:"sessionID"`
+}
+
+//GetCorelationId ...
+func GetCorelationId(ctx context.Context) (CoRelationId, error) {
+	if corelid, ok := ctx.Value(corel).(CoRelationId); ok {
+		return corelid, nil
+	}
+	return CoRelationId{}, fmt.Errorf("invalid corelationId")
 }
 
 //LoggerOptions is set of config data for logg
@@ -80,7 +88,7 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 	file = strings.ReplaceAll(file, dLogger.Lops.WD, "")
 	file = strings.Trim(file, " ")
 	funcname = strings.Trim(funcname, " ")
-	corRelationID := ctx.Value(corel).(CorelationID)
+	coRelationID := ctx.Value(corel).(CoRelationId)
 	for idx := range fields {
 		switch fields[idx].(type) {
 		case int8, int16, int32, int64, int,
@@ -102,8 +110,8 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 		fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	}
 	fields["appID"] = dLogger.Lops.APPID
-	fields["requestID"] = corRelationID.RequestID
-	fields["sessionID"] = corRelationID.SessionID
+	fields["requestID"] = coRelationID.RequestID
+	fields["sessionID"] = coRelationID.SessionID
 	entry := dLogger.Logger.WithFields(fields)
 	entry.Log(cb, MessageKey)
 }
@@ -226,7 +234,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		}
 		c.Set("requestID", requestID)
 		c.Set("sessionID", sessionID)
-		ctx := context.WithValue(c, corel, CorelationID{RequestID: requestID, SessionID: sessionID})
+		ctx := context.WithValue(c, corel, CoRelationId{RequestID: requestID, SessionID: sessionID})
 		c.Set("context", ctx)
 		fields := logrus.Fields{
 			"referer":   c.Request.Referer(),
