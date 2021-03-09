@@ -46,12 +46,7 @@ type KibanaConfig struct {
 }
 
 // type
-var corel interface{} = "corel"
-
-//GetCorelKey ...
-func GetCorelKey() interface{} {
-	return corel
-}
+var corel interface{} = time.Now()
 
 //CoRelationId correlationData
 type CoRelationId struct {
