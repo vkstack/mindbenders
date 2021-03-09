@@ -45,6 +45,20 @@ type KibanaConfig struct {
 	Hostname string
 }
 
+// type
+var corel interface{} = "corel"
+
+//GetCORELKey ...
+func GetCORELKey() interface{} {
+	return corel
+}
+
+//CorelDatum correlationData
+type CorelDatum struct {
+	RequestID string `json:"requestID"`
+	SessionID string `json:"sessionID"`
+}
+
 //LoggerOptions is set of config data for logg
 type LoggerOptions struct {
 	KibanaConfig
@@ -52,7 +66,6 @@ type LoggerOptions struct {
 	APPID, // Service application ID
 	LOGENV, // Dev/Debug/Production
 	WD string // Working directory of the application
-	COREL              interface{}
 	DisableJSONLogging bool
 }
 
@@ -67,7 +80,7 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 	file = strings.ReplaceAll(file, dLogger.Lops.WD, "")
 	file = strings.Trim(file, " ")
 	funcname = strings.Trim(funcname, " ")
-	corRelationID := ctx.Value(dLogger.Lops.COREL).(map[string]interface{})
+	corRelationID := ctx.Value(corel).(CorelDatum)
 	for idx := range fields {
 		switch fields[idx].(type) {
 		case int8, int16, int32, int64, int,
@@ -89,8 +102,8 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 		fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	}
 	fields["appID"] = dLogger.Lops.APPID
-	fields["requestID"] = corRelationID["requestID"]
-	fields["sessionID"] = corRelationID["sessionID"]
+	fields["requestID"] = corRelationID.RequestID
+	fields["sessionID"] = corRelationID.SessionID
 	entry := dLogger.Logger.WithFields(fields)
 	entry.Log(cb, MessageKey)
 }
@@ -213,11 +226,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		}
 		c.Set("requestID", requestID)
 		c.Set("sessionID", sessionID)
-		ctx := context.WithValue(c, dLogger.Lops.COREL,
-			map[string]interface{}{
-				"requestID": requestID,
-				"sessionID": sessionID,
-			})
+		ctx := context.WithValue(c, corel, CorelDatum{RequestID: requestID, SessionID: sessionID})
 		c.Set("context", ctx)
 		fields := logrus.Fields{
 			"referer":   c.Request.Referer(),
