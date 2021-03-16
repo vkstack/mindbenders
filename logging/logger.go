@@ -239,9 +239,9 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		if c.Request.Body != nil && !dLogger.Lops.DisableJSONLogging {
 			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
 			fields["requestBody"] = string(bodyBytes)
+			// Restore the io.ReadCloser to its original state
+			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 		}
-		// Restore the io.ReadCloser to its original state
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
 		fields["statusCode"] = 0
 		c.Next()
