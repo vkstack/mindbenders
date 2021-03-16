@@ -215,7 +215,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		}
 		c.Set("requestID", requestID)
 		c.Set("sessionID", sessionID)
-		ctx := context.WithValue(c, corel.GetCorelKey(), corel.CoRelationId{RequestID: requestID, SessionID: sessionID})
+		ctx := corel.GetCtxWithCorelID(c, requestID, sessionID)
 		c.Set("context", ctx)
 		fields := logrus.Fields{
 			"referer":   c.Request.Referer(),

@@ -8,11 +8,6 @@ import (
 
 var corel interface{} = time.Now()
 
-//GetCorelKey ...
-func GetCorelKey() interface{} {
-	return corel
-}
-
 //CoRelationId correlationData
 type CoRelationId struct {
 	RequestID string `json:"requestID"`
@@ -26,4 +21,12 @@ func GetCorelationId(ctx context.Context) (corelid CoRelationId, err error) {
 		err = fmt.Errorf("invalid corelationId")
 	}
 	return
+}
+
+//GetCtxWithCorelID ...
+func GetCtxWithCorelID(ctx context.Context, requestID, sessionID string) context.Context {
+	return context.WithValue(ctx, corel, CoRelationId{
+		RequestID: requestID,
+		SessionID: sessionID,
+	})
 }
