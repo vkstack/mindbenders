@@ -3,10 +3,13 @@ package corel
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-var corel interface{} = time.Now()
+var corel interface{} = time.Now().Add(-time.Microsecond * (time.Duration(rand.Intn(1000)))).String()
 
 //CoRelationId correlationData
 type CoRelationId struct {
@@ -24,9 +27,15 @@ func GetCorelationId(ctx context.Context) (corelid CoRelationId, err error) {
 }
 
 //GetCtxWithCorelID ...
+//Will be of no use once the consumer stops copying the context.
 func GetCtxWithCorelID(ctx context.Context, requestID, sessionID string) context.Context {
 	return context.WithValue(ctx, corel, CoRelationId{
 		RequestID: requestID,
 		SessionID: sessionID,
 	})
+}
+
+//GinSetCoRelID ...
+func GinSetCoRelID(c *gin.Context, corelid CoRelationId) {
+	c.Set(corel.(string), corelid)
 }
