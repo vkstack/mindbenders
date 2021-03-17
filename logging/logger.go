@@ -27,10 +27,6 @@ import (
 	"gopkg.in/sohlich/elogrus.v7"
 )
 
-const (
-	timeFormat = "02/Jan/2006:15:04:05 -0700"
-)
-
 //DPLogger ...
 type DPLogger struct {
 	Lops   LoggerOptions
@@ -203,6 +199,7 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		// other handler can change c.Path so:
 		start := time.Now()
 		var sessionID, requestID string
+		//todo: consider avoiding unknown session
 		if _, ok := c.Request.Header["Session_id"]; !ok || len(c.Request.Header["Session_id"]) == 0 { // Handling OPTIONS request
 			sessionID = "unknownSession"
 		} else {
@@ -213,8 +210,11 @@ func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
 		} else {
 			requestID = c.Request.Header["Request_id"][0]
 		}
-		c.Set("requestID", requestID)
-		c.Set("sessionID", sessionID)
+		corel.GinSetCoRelID(c, corel.CoRelationId{
+			RequestID: requestID,
+			SessionID: sessionID,
+		})
+		//Soon the following 2 steps will go away
 		ctx := corel.GetCtxWithCorelID(c, requestID, sessionID)
 		c.Set("context", ctx)
 		fields := logrus.Fields{
