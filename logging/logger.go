@@ -110,7 +110,7 @@ func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
 	var err error
 	log := logrus.New()
 	log.SetNoLock()
-	if lops.LOGENV == "DEV" {
+	if lops.LOGENV == "dev" {
 		formatter := &logrus.TextFormatter{
 			ForceColors:               false,
 			DisableColors:             false,
@@ -152,7 +152,7 @@ func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
 		}
 	}
 	log.Hooks.Add(hook)
-	if lops.LOGENV != "DEV" {
+	if lops.LOGENV != "dev" {
 		log.Out = ioutil.Discard
 	}
 	return &DPLogger{Logger: log, Lops: *lops}, nil
