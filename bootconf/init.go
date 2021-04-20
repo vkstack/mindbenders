@@ -1,8 +1,8 @@
 package secretmanager
 
 import (
-	"gitlab.com/dotpe/mindbenders/secretmanager/config"
-	"gitlab.com/dotpe/mindbenders/secretmanager/confmanager"
+	"gitlab.com/dotpe/mindbenders/bootconf/config"
+	"gitlab.com/dotpe/mindbenders/bootconf/confmanager"
 )
 
 var ConfManager config.IConfig
