@@ -1,4 +1,4 @@
-package secretmanager
+package bootconf
 
 import (
 	"gitlab.com/dotpe/mindbenders/bootconf/config"
