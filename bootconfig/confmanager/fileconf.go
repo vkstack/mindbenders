@@ -7,7 +7,7 @@ import (
 	"os"
 	"path"
 
-	"gitlab.com/dotpe/mindbenders/bootconf/config"
+	"gitlab.com/dotpe/mindbenders/bootconfig/config"
 )
 
 const devconfig = "config.local.json"
