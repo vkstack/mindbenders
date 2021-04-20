@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/dotpe/mindbenders/bootconf/config"
+	"gitlab.com/dotpe/mindbenders/bootconfig/config"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"

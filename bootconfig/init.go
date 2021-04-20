@@ -1,8 +1,8 @@
-package bootconf
+package bootconfig
 
 import (
-	"gitlab.com/dotpe/mindbenders/bootconf/config"
-	"gitlab.com/dotpe/mindbenders/bootconf/confmanager"
+	"gitlab.com/dotpe/mindbenders/bootconfig/config"
+	"gitlab.com/dotpe/mindbenders/bootconfig/confmanager"
 )
 
 var ConfManager config.IConfig
