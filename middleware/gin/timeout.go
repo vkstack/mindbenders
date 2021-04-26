@@ -15,12 +15,6 @@ func Timeout(t time.Duration) func(c *gin.Context) {
 			c.Next()
 			finish <- struct{}{}
 		}()
-
-		select {
-		// case <-time.After(t):
-		// 	c.JSON(504, "timeout")
-		// 	c.Abort()
-		case <-finish:
-		}
+		<-finish
 	}
 }
