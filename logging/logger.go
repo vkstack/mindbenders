@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -54,18 +55,16 @@ type LoggerOptions struct {
 	DisableJSONLogging bool
 }
 
+type DotpeLogger interface {
+	WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{})
+}
+
 //WriteLogs writes log
 func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{}) {
 	if ctx == nil {
 		return
 	}
 
-	pc, file, line, _ := runtime.Caller(1)
-	_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
-	file = strings.ReplaceAll(file, dLogger.Lops.WD, "")
-	file = strings.Trim(file, " ")
-	funcname = strings.Trim(funcname, " ")
-	coRelationID, _ := corel.GetCorelationId(ctx)
 	for idx := range fields {
 		switch fields[idx].(type) {
 		case int8, int16, int32, int64, int,
@@ -84,18 +83,40 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 		fields[fmt.Sprintf("field_%d", idx)] = args[idx]
 	}
 	if _, ok := fields["caller"]; !ok {
+		pc, file, line, _ := runtime.Caller(1)
+		_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
+		file = strings.Trim(file, " ")
+		funcname = strings.Trim(funcname, " ")
 		fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	}
+	fields["caller"] = strings.ReplaceAll(fields["caller"].(string), dLogger.Lops.WD, "")
 	fields["appID"] = dLogger.Lops.APPID
+	coRelationID, _ := corel.GetCorelationId(ctx)
 	fields["requestID"] = coRelationID.RequestID
 	fields["sessionID"] = coRelationID.SessionID
 	entry := dLogger.Logger.WithFields(fields)
 	entry.Log(cb, MessageKey)
 }
 
+var lock = &sync.Mutex{}
+var logger *DPLogger
+
 //InitLogger sets up the logger object with LoeggerOptions provided.
 //It returns reference logger object and error
 func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
+	if logger == nil {
+		lock.Lock()
+		if logger == nil {
+			if err := initlogger(lops); err != nil {
+				return nil, err
+			}
+		}
+		lock.Unlock()
+	}
+	return logger, nil
+}
+
+func initlogger(lops *LoggerOptions) error {
 	if lops.Hostname == "" {
 		if x, err := os.Hostname(); err != nil {
 			lops.Hostname = "unknown"
@@ -104,7 +125,7 @@ func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
 		}
 	}
 	if lops == nil {
-		return nil, errors.New("invalid logger options")
+		return errors.New("invalid logger options")
 	}
 	var hook logrus.Hook
 	var err error
@@ -136,26 +157,28 @@ func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
 		if err != nil {
 			fmt.Println(err)
 			log.Panic(err)
-			return nil, err
+			return err
 		}
 	} else {
 		client, err := newElasticClient(&lops.KibanaConfig)
 		if err != nil {
 			fmt.Println(err)
 			log.Panic(err)
-			return nil, err
+			return err
 		}
 		hook, err = elogrus.NewAsyncElasticHook(client, "", logrus.DebugLevel, lops.APP)
 		if err != nil {
 			log.Panic(err)
-			return nil, err
+			return err
 		}
 	}
 	log.Hooks.Add(hook)
 	if lops.LOGENV != "dev" {
 		log.Out = ioutil.Discard
 	}
-	return &DPLogger{Logger: log, Lops: *lops}, nil
+	logger = &DPLogger{Logger: log, Lops: *lops}
+	return nil
+
 }
 
 func newElasticClient(kibops *KibanaConfig) (*elastic.Client, error) {
