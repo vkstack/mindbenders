@@ -25,11 +25,11 @@ import (
 	awsauth "github.com/smartystreets/go-aws-auth"
 	"github.com/snowzach/rotatefilehook"
 	"gitlab.com/dotpe/mindbenders/corel"
+	"gitlab.com/dotpe/mindbenders/interfaces"
 	"gopkg.in/sohlich/elogrus.v7"
 )
 
-//DPLogger ...
-type DPLogger struct {
+type dlogger struct {
 	Lops   LoggerOptions
 	Logger *logrus.Logger
 }
@@ -56,7 +56,7 @@ type LoggerOptions struct {
 }
 
 //WriteLogs writes log
-func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{}) {
+func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{}) {
 	if ctx == nil {
 		return
 	}
@@ -95,11 +95,11 @@ func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb
 }
 
 var lock = &sync.Mutex{}
-var logger *DPLogger
+var logger interfaces.IDotpeLogger
 
 //InitLogger sets up the logger object with LoeggerOptions provided.
 //It returns reference logger object and error
-func InitLogger(lops *LoggerOptions) (*DPLogger, error) {
+func InitLogger(lops *LoggerOptions) (interfaces.IDotpeLogger, error) {
 	if logger == nil {
 		lock.Lock()
 		if logger == nil {
@@ -172,7 +172,7 @@ func initlogger(lops *LoggerOptions) error {
 	if lops.LOGENV != "dev" {
 		log.Out = ioutil.Discard
 	}
-	logger = &DPLogger{Logger: log, Lops: *lops}
+	logger = &dlogger{Logger: log, Lops: *lops}
 	return nil
 
 }
@@ -213,7 +213,7 @@ func newElasticClient(kibops *KibanaConfig) (*elastic.Client, error) {
 }
 
 //GinLogger returns a gin.HandlerFunc middleware
-func (dLogger *DPLogger) GinLogger() gin.HandlerFunc {
+func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// other handler can change c.Path so:
 		start := time.Now()
