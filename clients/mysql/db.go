@@ -77,7 +77,7 @@ func Init(option Option) (*sql.DB, error) {
 }
 
 //WriteDBError ...
-func WriteDBError(ctx context.Context, logger interfaces.ILogger, err error, db, etype string) {
+func WriteDBError(ctx context.Context, logger interfaces.IDotpeLogger, err error, db, etype string) {
 	pc, file, line, _ := runtime.Caller(1)
 	funcname := runtime.FuncForPC(pc).Name()
 	logger.WriteLogs(ctx, logrus.Fields{
