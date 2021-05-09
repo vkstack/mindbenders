@@ -14,7 +14,7 @@ import (
 )
 
 //Recovery returns a gin.HandlerFunc having recovery solution
-func Recovery(l interfaces.ILogger) gin.HandlerFunc {
+func Recovery(l interfaces.IDotpeLogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {

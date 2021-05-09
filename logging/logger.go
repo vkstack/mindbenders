@@ -55,10 +55,6 @@ type LoggerOptions struct {
 	DisableJSONLogging bool
 }
 
-type DotpeLogger interface {
-	WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{})
-}
-
 //WriteLogs writes log
 func (dLogger *DPLogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{}) {
 	if ctx == nil {
