@@ -7,8 +7,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type ILogWriter interface {
+	WriteLogs(context.Context, logrus.Fields, logrus.Level, string, ...interface{})
+}
+
 //ILogger ...
 type IDotpeLogger interface {
-	WriteLogs(context.Context, logrus.Fields, logrus.Level, string, ...interface{})
+	ILogWriter
 	GinLogger() gin.HandlerFunc
 }
