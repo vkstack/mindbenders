@@ -16,10 +16,15 @@ const (
 var node *snowflake.Node
 var once sync.Once
 
+func GetGenerator(nodeID int64) (*snowflake.Node, error) {
+	snowflake.Epoch = CUSTOMEPOCH
+	return snowflake.NewNode(nodeID)
+}
+
 //SetNode create a snowflake node.
 func SetNode(nodeID int64) (err error) {
 	snowflake.Epoch = CUSTOMEPOCH
-	node, err = snowflake.NewNode(nodeID)
+	node, err = GetGenerator(nodeID)
 	return
 }
 
