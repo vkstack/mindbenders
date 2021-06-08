@@ -20,7 +20,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/olivere/elastic/v7"
 	"github.com/olivere/elastic/v7/aws"
-	"github.com/rs/xid"
 	"github.com/sirupsen/logrus"
 	awsauth "github.com/smartystreets/go-aws-auth"
 	"github.com/snowzach/rotatefilehook"
@@ -90,6 +89,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	coRelationID, _ := corel.GetCorelationId(ctx)
 	fields["requestID"] = coRelationID.RequestID
 	fields["sessionID"] = coRelationID.SessionID
+	fields["hop"] = coRelationID.Hop
 	entry := dLogger.Logger.WithFields(fields)
 	entry.Log(cb, MessageKey)
 }
@@ -217,25 +217,10 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// other handler can change c.Path so:
 		start := time.Now()
-		var sessionID, requestID string
-		//todo: consider avoiding unknown session
-		if _, ok := c.Request.Header["Session_id"]; !ok || len(c.Request.Header["Session_id"]) == 0 { // Handling OPTIONS request
-			sessionID = "unknownSession"
-		} else {
-			sessionID = c.Request.Header["Session_id"][0]
-		}
-		if _, ok := c.Request.Header["Request_id"]; !ok || len(c.Request.Header["Request_id"]) == 0 { // Handling OPTIONS request
-			requestID = xid.New().String()
-		} else {
-			requestID = c.Request.Header["Request_id"][0]
-		}
-		corel.GinSetCoRelID(c, corel.CoRelationId{
-			RequestID: requestID,
-			SessionID: sessionID,
-		})
-		//Soon the following 2 steps will go away
-		ctx := corel.GetCtxWithCorelID(c, requestID, sessionID)
-		c.Set("context", ctx)
+		var corelid corel.CoRelationId
+		c.ShouldBindHeader(&corelid)
+		corelid.OnceMust()
+		corel.GinSetCoRelID(c, &corelid)
 		fields := logrus.Fields{
 			"referer":   c.Request.Referer(),
 			"clientIP":  c.ClientIP(),
@@ -244,8 +229,9 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 			"method":    c.Request.Method,
 			"path":      c.Request.URL.Path,
 			"query":     c.Request.URL.RawQuery,
-			"requestID": requestID,
-			"sessionID": sessionID,
+			"requestID": corelid.RequestID,
+			"sessionID": corelid.SessionID,
+			"hop":       corelid.Hop,
 			"userAgent": c.Request.UserAgent(),
 		}
 
@@ -253,7 +239,7 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 		*level = logrus.InfoLevel
 
 		//deferred request log
-		defer dLogger.WriteLogs(ctx, fields, *level, "access-log")
+		defer dLogger.WriteLogs(c, fields, *level, "access-log")
 		var bodyBytes []byte
 		if c.Request.Body != nil && !dLogger.Lops.DisableJSONLogging {
 			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
