@@ -16,9 +16,9 @@ var corel interface{} = time.Now().Add(-time.Microsecond * (time.Duration(rand.I
 
 //CoRelationId correlationData
 type CoRelationId struct {
-	RequestID string `json:"requestID" binding:"required"`
-	SessionID string `json:"sessionID" binding:"required"`
-	Hop       int    `json:"hop"`
+	RequestID string `json:"requestID" header:"request_id"`
+	SessionID string `json:"sessionID" header:"session_id"`
+	Hop       int    `json:"hop" header:"hop"`
 	isset     bool
 	mu        sync.Mutex
 }
