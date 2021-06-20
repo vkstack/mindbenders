@@ -222,17 +222,18 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 		corelid.OnceMust()
 		corel.GinSetCoRelID(c, &corelid)
 		fields := logrus.Fields{
-			"referer":   c.Request.Referer(),
-			"clientIP":  c.ClientIP(),
-			"host":      c.Request.Host,
-			"hostname":  dLogger.Lops.Hostname,
-			"method":    c.Request.Method,
-			"path":      c.Request.URL.Path,
-			"query":     c.Request.URL.RawQuery,
-			"requestID": corelid.RequestID,
-			"sessionID": corelid.SessionID,
-			"hop":       corelid.Hop,
-			"userAgent": c.Request.UserAgent(),
+			"referer":     c.Request.Referer(),
+			"clientIP":    c.ClientIP(),
+			"host":        c.Request.Host,
+			"hostname":    dLogger.Lops.Hostname,
+			"method":      c.Request.Method,
+			"path":        c.FullPath(),
+			"uriparams":   c.Params,
+			"queryparams": c.Request.URL.Query(),
+			"requestID":   corelid.RequestID,
+			"sessionID":   corelid.SessionID,
+			"hop":         corelid.Hop,
+			"userAgent":   c.Request.UserAgent(),
 		}
 
 		var level = new(logrus.Level)
