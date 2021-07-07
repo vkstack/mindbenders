@@ -45,5 +45,5 @@ func (cfgmgr *fileConfig) Get(key string) ([]byte, error) {
 		return byteVal, nil
 	}
 	//handle this error very carefully
-	return nil, errors.New("no such config exists")
+	return nil, errors.New("no such config exists:\t" + key)
 }
