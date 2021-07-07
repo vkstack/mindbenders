@@ -228,7 +228,7 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 			"hostname":    dLogger.Lops.Hostname,
 			"method":      c.Request.Method,
 			"path":        c.FullPath(),
-			"uriparams":   c.Params,
+			"uriparams":   parseGinUriParams(c.Params),
 			"queryparams": c.Request.URL.Query(),
 			"requestID":   corelid.RequestID,
 			"sessionID":   corelid.SessionID,
@@ -271,4 +271,12 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 			*level = logrus.WarnLevel
 		}
 	}
+}
+
+func parseGinUriParams(params gin.Params) map[string]interface{} {
+	parsedParams := make(map[string]interface{})
+	for _, p := range params {
+		parsedParams[p.Key] = p.Value
+	}
+	return parsedParams
 }
