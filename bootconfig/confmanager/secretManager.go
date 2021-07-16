@@ -59,3 +59,10 @@ func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
 	}
 	return decodedBinarySecretBytes[:len], nil
 }
+
+func (cfgmgr *secretManager) GetConfig(key string) (raw config.ConfigValue, err error) {
+	if raw, err = cfgmgr.Get(key); err != nil {
+		return nil, err
+	}
+	return raw, nil
+}
