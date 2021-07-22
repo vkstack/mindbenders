@@ -2,14 +2,18 @@ package corel
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
+	"gitlab.com/dotpe/mindbenders/utils/lib/base62"
 )
 
 var corel interface{} = time.Now().Add(-time.Microsecond * (time.Duration(rand.Intn(1000)))).String()
@@ -19,8 +23,24 @@ type CoRelationId struct {
 	RequestID string `json:"requestID" header:"request_id"`
 	SessionID string `json:"sessionID" header:"session_id"`
 	Hop       int    `json:"hop" header:"hop"`
-	isset     bool
-	mu        sync.Mutex
+	Auth      string `header:"Authorization"`
+
+	isset bool
+	mu    sync.Mutex
+}
+
+type dotJWTinfo struct {
+	// Username      string `json:"username"`
+	TenantID int `json:"TenantId"`
+	// StoreID       int    `json:"StoreId"`
+	// FeatureRoleID string `json:"FeatureRoleId"`
+	// ExpiryTime    string `json:"ExpiryTime"`
+	// IssueTime     string `json:"IssueTime"`
+	// UserType      string `json:"UserType"`
+	SessionID string `json:"sessionID" header:"session_id"`
+	Exp       int    `json:"exp"`
+	JWT
+	// Iss           string `json:"iss"`
 }
 
 func (corelid *CoRelationId) OnceMust() {
@@ -31,6 +51,15 @@ func (corelid *CoRelationId) OnceMust() {
 			corelid.Hop += 1
 			if len(corelid.RequestID) == 0 {
 				corelid.RequestID = xid.New().String()
+			}
+			if len(corelid.Auth) > 0 && corelid.Auth != "unknownToken" {
+				corelid.Auth = strings.Replace(corelid.Auth, "Bearer ", "", 1)
+				_, strs, _ := new(jwt.Parser).ParseUnverified(corelid.Auth, jwt.MapClaims{})
+				var jwtinfo dotJWTinfo
+				json.Unmarshal([]byte(strs[1]), &jwtinfo)
+				if jwtinfo.TenantID > 0 && jwtinfo.Exp > 0 {
+					corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, base62.Encode(int64(jwtinfo.Exp)))
+				}
 			}
 			if len(corelid.SessionID) == 0 {
 				corelid.SessionID = "null-" + corelid.RequestID
