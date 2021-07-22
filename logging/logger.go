@@ -55,7 +55,7 @@ type LoggerOptions struct {
 }
 
 //WriteLogs writes log
-func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{}) {
+func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string) {
 	if ctx == nil {
 		return
 	}
@@ -70,12 +70,6 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 			tmp, _ := json.Marshal(fields[idx])
 			fields[idx] = string(tmp)
 		}
-	}
-	for idx := range args {
-		if idx == 5 {
-			break
-		}
-		fields[fmt.Sprintf("field_%d", idx)] = args[idx]
 	}
 	if _, ok := fields["caller"]; !ok {
 		pc, file, line, _ := runtime.Caller(1)
