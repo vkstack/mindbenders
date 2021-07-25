@@ -90,6 +90,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 
 var lock = &sync.Mutex{}
 var logger interfaces.IDotpeLogger
+var lopts *LoggerOptions
 
 //InitLogger sets up the logger object with LoeggerOptions provided.
 //It returns reference logger object and error
@@ -107,6 +108,7 @@ func InitLogger(lops *LoggerOptions) (interfaces.IDotpeLogger, error) {
 }
 
 func initlogger(lops *LoggerOptions) error {
+	lopts = lops
 	if lops.Hostname == "" {
 		if x, err := os.Hostname(); err != nil {
 			lops.Hostname = "unknown"
@@ -213,7 +215,7 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 		start := time.Now()
 		var corelid corel.CoRelationId
 		c.ShouldBindHeader(&corelid)
-		corelid.OnceMust()
+		corelid.OnceMust(c, lopts.APP)
 		corel.GinSetCoRelID(c, &corelid)
 		fields := logrus.Fields{
 			"referer":     c.Request.Referer(),
