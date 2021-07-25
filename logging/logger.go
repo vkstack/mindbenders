@@ -84,6 +84,10 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	fields["requestID"] = coRelationID.RequestID
 	fields["sessionID"] = coRelationID.SessionID
 	fields["hop"] = coRelationID.Hop
+	if coRelationID.OriginApp != "" {
+		fields["OriginApp"] = coRelationID.OriginApp
+		fields["OriginHost"] = coRelationID.OriginHost
+	}
 	entry := dLogger.Logger.WithFields(fields)
 	entry.Log(cb, MessageKey)
 }

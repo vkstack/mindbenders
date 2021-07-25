@@ -37,6 +37,37 @@ type CoRelationId struct {
 	mu    sync.Mutex
 	enc   string
 }
+type dotJWTinfo struct {
+	TenantID  int    `json:"TenantId"`
+	StoreID   int    `json:"StoreId"`
+	SessionID string `json:"sessionID" header:"session_id"`
+	Exp       int    `json:"exp"`
+}
+
+func (djwt dotJWTinfo) Valid() error {
+	return nil
+}
+func (corelid *CoRelationId) loadAuth() error {
+	if len(corelid.Auth) > 0 && corelid.Auth != "unknownToken" {
+		corelid.JWT = strings.Replace(corelid.Auth, "Bearer ", "", 1)
+		parts := strings.Split(corelid.JWT, ".")
+		raw, err := jwt.DecodeSegment(parts[1])
+		if err != nil {
+			return err
+		}
+		var jwtinfo dotJWTinfo
+		err = json.Unmarshal(raw, &jwtinfo)
+		if err == nil && jwtinfo.TenantID > 0 && jwtinfo.Exp > 0 {
+			corelid.User = &jwtinfo
+			if len(jwtinfo.SessionID) > 0 {
+				corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, jwtinfo.SessionID)
+			} else {
+				corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, base62.Encode(int64(jwtinfo.Exp)))
+			}
+		}
+	}
+	return nil
+}
 
 func encCorelToBase64(corelid *CoRelationId) string {
 	if len(corelid.enc) == 0 {
@@ -58,46 +89,26 @@ func decodeBase64ToCorel(raw string, corel *CoRelationId) error {
 	}
 }
 
-type dotJWTinfo struct {
-	TenantID  int    `json:"TenantId"`
-	StoreID   int    `json:"StoreId"`
-	SessionID string `json:"sessionID" header:"session_id"`
-	Exp       int    `json:"exp"`
-}
-
 func (corelid *CoRelationId) OnceMust(c *gin.Context, app string) {
 	if !corelid.isset {
 		corelid.mu.Lock()
 		if !corelid.isset {
-			corelid.isset = true
-			corelid.Hop += 1
+			rawcorel := c.Request.Header.Get("corel")
+			if len(rawcorel) > 0 {
+				decodeBase64ToCorel(rawcorel, corelid)
+			}
 			if len(corelid.RequestID) == 0 {
-				rawcorel := c.Request.Header.Get("corel")
-				if len(rawcorel) > 0 {
-					decodeBase64ToCorel(rawcorel, corelid)
-				}
+				corelid.loadAuth()
 				corelid.IsHTTP = true
 				corelid.RequestID = xid.New().String()
 				corelid.OriginApp = app
 				corelid.OriginHost, _ = os.Hostname()
-				if len(corelid.Auth) > 0 && corelid.Auth != "unknownToken" {
-					corelid.JWT = strings.Replace(corelid.Auth, "Bearer ", "", 1)
-					_, strs, _ := new(jwt.Parser).ParseUnverified(corelid.JWT, jwt.MapClaims{})
-					var jwtinfo dotJWTinfo
-					err := json.Unmarshal([]byte(strs[1]), &jwtinfo)
-					if err == nil && jwtinfo.TenantID > 0 && jwtinfo.Exp > 0 {
-						corelid.User = &jwtinfo
-						if len(jwtinfo.SessionID) > 0 {
-							corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, jwtinfo.SessionID)
-						} else {
-							corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, base62.Encode(int64(jwtinfo.Exp)))
-						}
-					}
-				}
-				if len(corelid.SessionID) == 0 {
-					corelid.SessionID = "null-" + corelid.RequestID
-				}
 			}
+			if len(corelid.SessionID) == 0 {
+				corelid.SessionID = "null-" + corelid.RequestID
+			}
+			corelid.isset = true
+			corelid.Hop += 1
 		}
 		corelid.mu.Unlock()
 	}
