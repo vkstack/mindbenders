@@ -57,12 +57,16 @@ func (corelid *CoRelationId) loadAuth() error {
 		}
 		var jwtinfo dotJWTinfo
 		err = json.Unmarshal(raw, &jwtinfo)
-		if err == nil && jwtinfo.TenantID > 0 && jwtinfo.Exp > 0 {
+		if err == nil {
 			corelid.User = &jwtinfo
-			if len(jwtinfo.SessionID) > 0 {
-				corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, jwtinfo.SessionID)
+			if jwtinfo.TenantID > 0 && jwtinfo.Exp > 0 {
+				if len(jwtinfo.SessionID) > 0 {
+					corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, jwtinfo.SessionID)
+				} else {
+					corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, base62.Encode(int64(jwtinfo.Exp)))
+				}
 			} else {
-				corelid.SessionID = fmt.Sprintf("%d:%s", jwtinfo.TenantID, base62.Encode(int64(jwtinfo.Exp)))
+				corelid.SessionID = strings.Split(corelid.JWT, ".")[2] // This should never happen.
 			}
 		}
 	}
