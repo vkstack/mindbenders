@@ -2,6 +2,7 @@ package logging
 
 import (
 	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -14,6 +15,7 @@ var logger interfaces.IDotpeLogger
 //InitLogger sets up the logger object with LoeggerOptions provided.
 //It returns reference logger object and error
 func InitLogger(lops *LoggerOptions) (interfaces.IDotpeLogger, error) {
+	lops.Hostname, _ = os.Hostname()
 	if logger == nil {
 		lock.Lock()
 		if logger == nil {

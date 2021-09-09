@@ -18,17 +18,15 @@ type KibanaConfig struct {
 	accessKey,
 	secretKey,
 	app,
-	host,
 	appId string
 }
 
-func NewKibanaConfig(Client, AccessKey, SecretKey, APP, Hostname, APPID string) ILogConfig {
+func NewKibanaConfig(Client, AccessKey, SecretKey, APP, APPID string) ILogConfig {
 	return &KibanaConfig{
 		client:    Client,
 		accessKey: AccessKey,
 		secretKey: SecretKey,
 		app:       APP,
-		host:      Hostname,
 		appId:     APPID,
 	}
 }
