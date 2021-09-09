@@ -1,6 +1,8 @@
 package logging
 
 import (
+	"path"
+
 	"github.com/sirupsen/logrus"
 	"github.com/snowzach/rotatefilehook"
 )
@@ -32,10 +34,10 @@ func (flc *FileLogConfig) getHook() (logrus.Hook, error) {
 		CallerPrettyfier:          nil,
 	}
 	return rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
-		Filename:   "logfile.log",
-		MaxSize:    5,
-		MaxBackups: 7,
-		MaxAge:     7,
+		Filename:   path.Join(flc.logdir, "app.log"),
+		MaxSize:    10,
+		MaxBackups: 10,
+		MaxAge:     10,
 		Level:      logrus.DebugLevel,
 		Formatter:  formatter,
 	})
