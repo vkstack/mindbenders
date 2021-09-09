@@ -4,28 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/olivere/elastic/v7"
-	"github.com/olivere/elastic/v7/aws"
 	"github.com/sirupsen/logrus"
-	awsauth "github.com/smartystreets/go-aws-auth"
-	"github.com/snowzach/rotatefilehook"
 	"gitlab.com/dotpe/mindbenders/corel"
-	"gitlab.com/dotpe/mindbenders/interfaces"
-	"gopkg.in/sohlich/elogrus.v7"
 )
 
 type dlogger struct {
@@ -34,22 +23,20 @@ type dlogger struct {
 }
 
 //KibanaConfig Mandatory for kibana logging
-type KibanaConfig struct {
-	Client,
-	AccessKey,
-	SecretKey,
-	APPID,
-	Hostname string
+
+type ILogConfig interface {
+	getHook() (logrus.Hook, error)
 }
 
 // type
 
 //LoggerOptions is set of config data for logg
 type LoggerOptions struct {
-	KibanaConfig
-	APP, // Service
+	iconfig ILogConfig
+	APP,    // Service
 	APPID, // Service application ID
 	LOGENV, // Dev/Debug/Production
+	Hostname,
 	WD string // Working directory of the application
 	DisableJSONLogging bool
 }
@@ -92,124 +79,6 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	fields["hop"] = coRelationID.Hop
 	entry := dLogger.Logger.WithFields(fields)
 	entry.Log(cb, MessageKey)
-}
-
-var lock = &sync.Mutex{}
-var logger interfaces.IDotpeLogger
-
-//InitLogger sets up the logger object with LoeggerOptions provided.
-//It returns reference logger object and error
-func InitLogger(lops *LoggerOptions) (interfaces.IDotpeLogger, error) {
-	if logger == nil {
-		lock.Lock()
-		if logger == nil {
-			if err := initlogger(lops); err != nil {
-				return nil, err
-			}
-		}
-		lock.Unlock()
-	}
-	return logger, nil
-}
-
-func initlogger(lops *LoggerOptions) error {
-	if lops.Hostname == "" {
-		if x, err := os.Hostname(); err != nil {
-			lops.Hostname = "unknown"
-		} else {
-			lops.Hostname = x
-		}
-	}
-	if lops == nil {
-		return errors.New("invalid logger options")
-	}
-	var hook logrus.Hook
-	var err error
-	log := logrus.New()
-	log.SetNoLock()
-	if lops.LOGENV == "dev" {
-		formatter := &logrus.TextFormatter{
-			ForceColors:               false,
-			DisableColors:             false,
-			EnvironmentOverrideColors: false,
-			DisableTimestamp:          false,
-			FullTimestamp:             false,
-			TimestampFormat:           "",
-			DisableSorting:            false,
-			SortingFunc:               nil,
-			DisableLevelTruncation:    false,
-			QuoteEmptyFields:          false,
-			FieldMap:                  nil,
-			CallerPrettyfier:          nil,
-		}
-		hook, err = rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
-			Filename:   "logfile.log",
-			MaxSize:    5,
-			MaxBackups: 7,
-			MaxAge:     7,
-			Level:      logrus.DebugLevel,
-			Formatter:  formatter,
-		})
-		if err != nil {
-			fmt.Println(err)
-			log.Panic(err)
-			return err
-		}
-	} else {
-		client, err := newElasticClient(&lops.KibanaConfig)
-		if err != nil {
-			fmt.Println(err)
-			log.Panic(err)
-			return err
-		}
-		hook, err = elogrus.NewAsyncElasticHook(client, "", logrus.DebugLevel, lops.APP)
-		if err != nil {
-			log.Panic(err)
-			return err
-		}
-	}
-	log.Hooks.Add(hook)
-	if lops.LOGENV != "dev" {
-		log.Out = ioutil.Discard
-	}
-	logger = &dlogger{Logger: log, Lops: *lops}
-	return nil
-
-}
-
-func newElasticClient(kibops *KibanaConfig) (*elastic.Client, error) {
-	if kibops.Client == "" {
-		log.Fatal("missing -client-url KIBANA")
-	}
-	if kibops.AccessKey == "" {
-		log.Fatal("missing -access-key or AWS_ACCESS_KEY environment variable")
-	}
-	if kibops.SecretKey == "" {
-		log.Fatal("missing -secret-key or AWS_SECRET_KEY environment variable")
-	}
-
-	sniff := flag.Bool("sniff", false, "Enable or disable sniffing")
-
-	flag.Parse()
-	log.SetFlags(0)
-
-	signingClient := aws.NewV4SigningClient(awsauth.Credentials{
-		AccessKeyID:     kibops.AccessKey,
-		SecretAccessKey: kibops.SecretKey,
-	})
-
-	client, err := elastic.NewClient(
-		elastic.SetURL(kibops.Client),
-		elastic.SetSniff(*sniff),
-		elastic.SetHealthcheck(*sniff),
-		elastic.SetHttpClient(signingClient),
-	)
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
-	fmt.Println("AWS ElasticSearchConnection succeeded")
-	return client, nil
 }
 
 //GinLogger returns a gin.HandlerFunc middleware
