@@ -32,7 +32,7 @@ type ILogConfig interface {
 
 //LoggerOptions is set of config data for logg
 type LoggerOptions struct {
-	iconfig ILogConfig
+	IConfig ILogConfig
 	APP,    // Service
 	APPID, // Service application ID
 	LOGENV, // Dev/Debug/Production
