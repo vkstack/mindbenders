@@ -29,7 +29,7 @@ func InitLogger(lops *LoggerOptions) (interfaces.IDotpeLogger, error) {
 func initlogger(lops *LoggerOptions) error {
 	log := logrus.New()
 	log.SetNoLock()
-	hook, err := lops.iconfig.getHook()
+	hook, err := lops.IConfig.getHook()
 	if err != nil {
 		log.Panic(err)
 		return err
