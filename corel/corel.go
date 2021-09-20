@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -51,6 +52,9 @@ func (corelid *CoRelationId) loadAuth() error {
 	if len(corelid.Auth) > 0 && corelid.Auth != "unknownToken" {
 		corelid.JWT = strings.Replace(corelid.Auth, "Bearer ", "", 1)
 		parts := strings.Split(corelid.JWT, ".")
+		if len(parts) < 2 {
+			return errors.New("invalid auth provided")
+		}
 		raw, err := jwt.DecodeSegment(parts[1])
 		if err != nil {
 			return err
