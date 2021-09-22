@@ -81,7 +81,9 @@ func WriteDBError(ctx context.Context, logger interfaces.IDotpeLogger, err error
 	pc, file, line, _ := runtime.Caller(1)
 	funcname := runtime.FuncForPC(pc).Name()
 	logger.WriteLogs(ctx, logrus.Fields{
-		"caller": fmt.Sprintf("%s:%d\n%s", file, line, funcname),
-		"error":  error.Error(err),
-	}, logrus.ErrorLevel, "MySQLError", etype, db)
+		"caller":     fmt.Sprintf("%s:%d\n%s", file, line, funcname),
+		"error":      error.Error(err),
+		"repository": db,
+		"error-type": etype,
+	}, logrus.ErrorLevel, "MySQLError")
 }
