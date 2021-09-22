@@ -42,7 +42,7 @@ type LoggerOptions struct {
 }
 
 //WriteLogs writes log
-func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string, args ...interface{}) {
+func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string) {
 	if ctx == nil {
 		return
 	}
@@ -58,12 +58,6 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 			fields[idx] = string(tmp)
 		}
 	}
-	for idx := range args {
-		if idx == 5 {
-			break
-		}
-		fields[fmt.Sprintf("field_%d", idx)] = args[idx]
-	}
 	if _, ok := fields["caller"]; !ok {
 		pc, file, line, _ := runtime.Caller(1)
 		_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
@@ -77,6 +71,10 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	fields["requestID"] = coRelationID.RequestID
 	fields["sessionID"] = coRelationID.SessionID
 	fields["hop"] = coRelationID.Hop
+	if coRelationID.OriginApp != "" {
+		fields["OriginApp"] = coRelationID.OriginApp
+		fields["OriginHost"] = coRelationID.OriginHost
+	}
 	entry := dLogger.Logger.WithFields(fields)
 	entry.Log(cb, MessageKey)
 }
@@ -88,7 +86,7 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 		start := time.Now()
 		var corelid corel.CoRelationId
 		c.ShouldBindHeader(&corelid)
-		corelid.OnceMust()
+		corelid.OnceMust(c, dLogger.Lops.APP)
 		corel.GinSetCoRelID(c, &corelid)
 		fields := logrus.Fields{
 			"referer":     c.Request.Referer(),
