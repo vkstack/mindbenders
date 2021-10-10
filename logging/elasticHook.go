@@ -30,6 +30,7 @@ func NewKibanaConfig(Client, AccessKey, SecretKey, APP, APPID string) ILogConfig
 		appId:     APPID,
 	}
 }
+
 func (conf *KibanaConfig) getHook() (logrus.Hook, error) {
 	client, err := conf.newElasticClient()
 	if err != nil {
