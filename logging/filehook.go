@@ -19,19 +19,11 @@ func NewFileLogConfig(logdir, app string) ILogConfig {
 }
 
 func (flc *FileLogConfig) getHook() (logrus.Hook, error) {
-	formatter := &logrus.TextFormatter{
-		ForceColors:               false,
-		DisableColors:             false,
-		EnvironmentOverrideColors: false,
-		DisableTimestamp:          false,
-		FullTimestamp:             false,
-		TimestampFormat:           "",
-		DisableSorting:            false,
-		SortingFunc:               nil,
-		DisableLevelTruncation:    false,
-		QuoteEmptyFields:          false,
-		FieldMap:                  nil,
-		CallerPrettyfier:          nil,
+	formatter := &logrus.JSONFormatter{
+		DisableTimestamp: false,
+		TimestampFormat:  "",
+		FieldMap:         nil,
+		CallerPrettyfier: nil,
 	}
 	return rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
 		Filename:   path.Join(flc.logdir, "app.log"),
