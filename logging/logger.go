@@ -102,7 +102,9 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 			"hop":         corelid.Hop,
 			"userAgent":   c.Request.UserAgent(),
 		}
-
+		if len(corelid.JWT) > 0 {
+			fields["token"] = corelid.JWT
+		}
 		var level = new(logrus.Level)
 		*level = logrus.InfoLevel
 
@@ -117,6 +119,7 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 		}
 
 		fields["statusCode"] = 0
+		c.Writer.Header().Set("request-id", corelid.RequestID)
 		c.Next()
 		stop := time.Since(start)
 		fields["latency"] = int(math.Ceil(float64(stop.Nanoseconds()) / 1000000.0))
