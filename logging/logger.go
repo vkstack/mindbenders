@@ -41,17 +41,18 @@ func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields *logrus.F
 			log.Println("unknow error while operating logOptions", r)
 		}
 	}()
-	for _, opt := range dlogger.loptions {
+	for _, opt := range dlogger.accopts {
 		opt(c, fields)
 	}
 }
 
-func (dlogger *dlogger) setEssentials() {
+func (dlogger *dlogger) finalizeEssentials() error {
 	if dlogger.logger == nil || dlogger.logger.Hooks == nil {
 		hook, err := getFileHook("app.log")
-		if err == nil {
-			WithLogHook(hook)(dlogger)
+		if err != nil {
+			return err
 		}
+		WithHook(hook)(dlogger)
 	}
 	if dlogger.loptions == nil {
 		dlogger.loptions = append(dlogger.loptions, logOptionBasic)
@@ -59,6 +60,7 @@ func (dlogger *dlogger) setEssentials() {
 	if dlogger.accopts == nil {
 		dlogger.accopts = append(dlogger.accopts, accessLogOptionBasic(dlogger.app))
 	}
+	return nil
 }
 
 //WriteLogs writes log
@@ -97,7 +99,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		var fields logrus.Fields
+		var fields = logrus.Fields{}
 
 		dLogger.safeRunAccessLogOptions(c, &fields)
 		var level = new(logrus.Level)

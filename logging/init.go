@@ -13,7 +13,7 @@ var host, _ = os.Hostname()
 
 //InitLogger sets up the logger object with LoeggerOptions provided.
 //It returns reference logger object and error
-func Init(opts ...Option) interfaces.IDotpeLogger {
+func Init(opts ...Option) (interfaces.IDotpeLogger, error) {
 	if logger == nil {
 		lock.Lock()
 		defer lock.Unlock()
@@ -22,9 +22,12 @@ func Init(opts ...Option) interfaces.IDotpeLogger {
 			for _, opt := range opts {
 				opt(dlogger)
 			}
-			dlogger.setEssentials()
+			err := dlogger.finalizeEssentials()
+			if err != nil {
+				return nil, err
+			}
 			logger = dlogger
 		}
 	}
-	return logger
+	return logger, nil
 }
