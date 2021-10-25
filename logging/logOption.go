@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -27,6 +28,7 @@ func accessLogOptionBasic(app string) accessLogOption {
 		(*fields)["uriparams"] = parseGinUriParams(c.Params)
 		(*fields)["queryparams"] = c.Request.URL.Query()
 		(*fields)["userAgent"] = c.Request.UserAgent()
+		(*fields)["time"] = time.Now()
 	}
 }
 
@@ -66,5 +68,8 @@ func logOptionBasic(ctx context.Context, fields *logrus.Fields) {
 	if coRelationID.OriginApp != "" {
 		(*fields)["OriginApp"] = coRelationID.OriginApp
 		(*fields)["OriginHost"] = coRelationID.OriginHost
+	}
+	if _, ok := (*fields)["time"]; !ok {
+		(*fields)["time"] = time.Now()
 	}
 }

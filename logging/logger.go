@@ -92,6 +92,9 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	}
 	fields["caller"] = strings.ReplaceAll(fields["caller"].(string), dLogger.wd, "")
 	entry := dLogger.logger.WithFields(fields)
+	if t, ok := fields["time"].(time.Time); ok {
+		entry.Time = t
+	}
 	entry.Log(cb, MessageKey)
 }
 
