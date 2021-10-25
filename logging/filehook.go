@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"path"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/snowzach/rotatefilehook"
@@ -28,7 +29,7 @@ func (flc *FileLogConfig) getHook() (logrus.Hook, error) {
 func getFileHook(filename string) (logrus.Hook, error) {
 	formatter := &logrus.JSONFormatter{
 		DisableTimestamp: false,
-		TimestampFormat:  "",
+		TimestampFormat:  time.RFC3339Nano,
 		FieldMap:         nil,
 		CallerPrettyfier: nil,
 	}
