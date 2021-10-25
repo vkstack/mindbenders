@@ -27,7 +27,7 @@ type dlogger struct {
 func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fields) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("unknow error while operating logOptions", r)
+			log.Println("unknown error while operating logOptions", r)
 		}
 	}()
 	for _, opt := range dlogger.loptions {
@@ -38,7 +38,7 @@ func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fi
 func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields *logrus.Fields) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("unknow error while operating logOptions", r)
+			log.Println("unknown error while operating accesslogOptions", r)
 		}
 	}()
 	for _, opt := range dlogger.accopts {
