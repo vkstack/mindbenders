@@ -1,11 +1,10 @@
 package logging
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"math"
 	"path/filepath"
 	"runtime"
@@ -14,31 +13,54 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/dotpe/mindbenders/corel"
 )
 
 type dlogger struct {
-	Lops   LoggerOptions
-	Logger *logrus.Logger
+	app, appId, env,
+	wd string // Working directory of the application
+
+	logger   *logrus.Logger
+	accopts  []accessLogOption
+	loptions []logOption
 }
 
-//KibanaConfig Mandatory for kibana logging
-
-type ILogConfig interface {
-	getHook() (logrus.Hook, error)
+func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fields) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("unknown error while operating logOptions", r)
+		}
+	}()
+	for _, opt := range dlogger.loptions {
+		opt(ctx, fields)
+	}
 }
 
-// type
+func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields *logrus.Fields) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("unknown error while operating accesslogOptions", r)
+		}
+	}()
+	for _, opt := range dlogger.accopts {
+		opt(c, fields)
+	}
+}
 
-//LoggerOptions is set of config data for logg
-type LoggerOptions struct {
-	IConfig ILogConfig
-	APP,    // Service
-	APPID, // Service application ID
-	LOGENV, // Dev/Debug/Production
-	Hostname,
-	WD string // Working directory of the application
-	DisableJSONLogging bool
+func (dlogger *dlogger) finalizeEssentials() error {
+	if dlogger.logger == nil || dlogger.logger.Hooks == nil {
+		hook, err := getFileHook("app.log")
+		if err != nil {
+			return err
+		}
+		WithHook(hook)(dlogger)
+	}
+	if dlogger.loptions == nil {
+		dlogger.loptions = append(dlogger.loptions, logOptionBasic)
+	}
+	if dlogger.accopts == nil {
+		dlogger.accopts = append(dlogger.accopts, accessLogOptionBasic(dlogger.app))
+	}
+	return nil
 }
 
 //WriteLogs writes log
@@ -46,7 +68,10 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	if ctx == nil {
 		return
 	}
-
+	if len(dLogger.appId) > 0 {
+		fields["appID"] = dLogger.appId
+	}
+	dLogger.safeRunLogOptions(ctx, &fields)
 	for idx := range fields {
 		switch fields[idx].(type) {
 		case int8, int16, int32, int64, int,
@@ -65,61 +90,25 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 		funcname = strings.Trim(funcname, " ")
 		fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	}
-	fields["caller"] = strings.ReplaceAll(fields["caller"].(string), dLogger.Lops.WD, "")
-	fields["appID"] = dLogger.Lops.APPID
-	coRelationID, _ := corel.GetCorelationId(ctx)
-	fields["requestID"] = coRelationID.RequestID
-	fields["sessionID"] = coRelationID.SessionID
-	fields["hop"] = coRelationID.Hop
-	if coRelationID.OriginApp != "" {
-		fields["OriginApp"] = coRelationID.OriginApp
-		fields["OriginHost"] = coRelationID.OriginHost
-	}
-	entry := dLogger.Logger.WithFields(fields)
+	fields["caller"] = strings.ReplaceAll(fields["caller"].(string), dLogger.wd, "")
+	entry := dLogger.logger.WithFields(fields)
 	entry.Log(cb, MessageKey)
 }
 
 //GinLogger returns a gin.HandlerFunc middleware
 func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// other handler can change c.Path so:
 		start := time.Now()
-		var corelid corel.CoRelationId
-		c.ShouldBindHeader(&corelid)
-		corelid.OnceMust(c, dLogger.Lops.APP)
-		corel.GinSetCoRelID(c, &corelid)
-		fields := logrus.Fields{
-			"referer":     c.Request.Referer(),
-			"clientIP":    c.ClientIP(),
-			"host":        c.Request.Host,
-			"hostname":    dLogger.Lops.Hostname,
-			"method":      c.Request.Method,
-			"path":        c.FullPath(),
-			"uriparams":   parseGinUriParams(c.Params),
-			"queryparams": c.Request.URL.Query(),
-			"requestID":   corelid.RequestID,
-			"sessionID":   corelid.SessionID,
-			"hop":         corelid.Hop,
-			"userAgent":   c.Request.UserAgent(),
-		}
-		if len(corelid.JWT) > 0 {
-			fields["token"] = corelid.JWT
-		}
+		var fields = logrus.Fields{}
+
+		dLogger.safeRunAccessLogOptions(c, &fields)
 		var level = new(logrus.Level)
 		*level = logrus.InfoLevel
 
 		//deferred request log
 		defer dLogger.WriteLogs(c, fields, *level, "access-log")
-		var bodyBytes []byte
-		if c.Request.Body != nil && !dLogger.Lops.DisableJSONLogging {
-			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-			fields["requestBody"] = string(bodyBytes)
-			// Restore the io.ReadCloser to its original state
-			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-		}
 
 		fields["statusCode"] = 0
-		c.Writer.Header().Set("request-id", corelid.RequestID)
 		c.Next()
 		stop := time.Since(start)
 		fields["latency"] = int(math.Ceil(float64(stop.Nanoseconds()) / 1000000.0))
@@ -141,12 +130,4 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 			*level = logrus.WarnLevel
 		}
 	}
-}
-
-func parseGinUriParams(params gin.Params) map[string]interface{} {
-	parsedParams := make(map[string]interface{})
-	for _, p := range params {
-		parsedParams[p.Key] = p.Value
-	}
-	return parsedParams
 }

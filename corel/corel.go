@@ -48,6 +48,7 @@ type dotJWTinfo struct {
 func (djwt dotJWTinfo) Valid() error {
 	return nil
 }
+
 func (corelid *CoRelationId) loadAuth() error {
 	if len(corelid.Auth) > 0 && corelid.Auth != "unknownToken" {
 		corelid.JWT = strings.Replace(corelid.Auth, "Bearer ", "", 1)
