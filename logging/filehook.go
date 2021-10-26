@@ -13,20 +13,20 @@ type FileLogConfig struct {
 	logdir, app string
 }
 
-func NewFileLogConfig(logdir, app string) ILogConfig {
+func NewFileHookContainer(logdir, app string) IHookContainer {
 	return &FileLogConfig{
 		logdir: logdir,
 		app:    app,
 	}
 }
 
-func (flc *FileLogConfig) getHook() (logrus.Hook, error) {
-	return getFileHook(path.Join(flc.logdir, fmt.Sprintf("app-%s.log", flc.app)))
+func (flc *FileLogConfig) GetHook() (logrus.Hook, error) {
+	return GetJSONFileHook(flc.logdir, fmt.Sprintf("app-%s.log", flc.app))
 }
 
 //absolute filename
 // /home/bob/work/app.log
-func getFileHook(filename string) (logrus.Hook, error) {
+func GetJSONFileHook(dir, file string) (logrus.Hook, error) {
 	formatter := &logrus.JSONFormatter{
 		DisableTimestamp: false,
 		TimestampFormat:  time.RFC3339Nano,
@@ -34,7 +34,7 @@ func getFileHook(filename string) (logrus.Hook, error) {
 		CallerPrettyfier: nil,
 	}
 	return rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
-		Filename:   filename,
+		Filename:   path.Join(dir, file),
 		MaxSize:    10,
 		MaxBackups: 10,
 		MaxAge:     10,

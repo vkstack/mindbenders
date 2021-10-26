@@ -31,7 +31,9 @@ func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fi
 		}
 	}()
 	for _, opt := range dlogger.loptions {
-		opt(ctx, fields)
+		if opt != nil {
+			opt(ctx, fields)
+		}
 	}
 }
 
@@ -42,13 +44,15 @@ func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields *logrus.F
 		}
 	}()
 	for _, opt := range dlogger.accopts {
-		opt(c, fields)
+		if opt != nil {
+			opt(c, fields)
+		}
 	}
 }
 
 func (dlogger *dlogger) finalizeEssentials() error {
 	if dlogger.logger == nil || dlogger.logger.Hooks == nil {
-		hook, err := getFileHook("app.log")
+		hook, err := GetJSONFileHook(".", "app.log")
 		if err != nil {
 			return err
 		}

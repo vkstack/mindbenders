@@ -16,8 +16,11 @@ func WithAppInfo(app, env, wd string) Option {
 	}
 }
 
-func WithHookContainer(hookContainer ILogConfig) Option {
-	hook, err := hookContainer.getHook()
+func WithHookContainer(hookContainer IHookContainer) Option {
+	if hookContainer == nil {
+		return nil
+	}
+	hook, err := hookContainer.GetHook()
 	if err != nil {
 		return nil
 	}
@@ -25,6 +28,9 @@ func WithHookContainer(hookContainer ILogConfig) Option {
 }
 
 func WithHook(hook logrus.Hook) Option {
+	if hook == nil {
+		return nil
+	}
 	return func(dlogger *dlogger) {
 		dlogger.logger = logrus.New()
 		dlogger.logger.SetNoLock()

@@ -1,8 +1,8 @@
 package logging
 
 import (
+	"errors"
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/olivere/elastic/v7"
@@ -13,7 +13,7 @@ import (
 	"gopkg.in/sohlich/elogrus.v7"
 )
 
-type KibanaConfig struct {
+type elasticConfig struct {
 	client,
 	accessKey,
 	secretKey,
@@ -21,8 +21,8 @@ type KibanaConfig struct {
 	appId string
 }
 
-func NewKibanaConfig(Client, AccessKey, SecretKey, APP, APPID string) ILogConfig {
-	return &KibanaConfig{
+func NewElasticHookContainer(Client, AccessKey, SecretKey, APP, APPID string) IHookContainer {
+	return &elasticConfig{
 		client:    Client,
 		accessKey: AccessKey,
 		secretKey: SecretKey,
@@ -31,24 +31,19 @@ func NewKibanaConfig(Client, AccessKey, SecretKey, APP, APPID string) ILogConfig
 	}
 }
 
-func (conf *KibanaConfig) getHook() (logrus.Hook, error) {
-	client, err := conf.newElasticClient()
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	return elogrus.NewAsyncElasticHook(client, "", logrus.DebugLevel, conf.app)
+func (conf *elasticConfig) GetHook() (logrus.Hook, error) {
+	return GetElasticHook(conf.app, conf.client, conf.accessKey, conf.secretKey)
 }
 
-func (conf *KibanaConfig) newElasticClient() (*elastic.Client, error) {
-	if conf.client == "" {
-		log.Fatal("missing -client-url KIBANA")
+func GetElasticHook(app, url, accessKey, secretKey string) (logrus.Hook, error) {
+	if url == "" {
+		return nil, errors.New("missing -client-url KIBANA")
 	}
-	if conf.accessKey == "" {
-		log.Fatal("missing -access-key or AWS_ACCESS_KEY environment variable")
+	if accessKey == "" {
+		return nil, errors.New("missing -access-key or AWS_ACCESS_KEY environment variable")
 	}
-	if conf.secretKey == "" {
-		log.Fatal("missing -secret-key or AWS_SECRET_KEY environment variable")
+	if secretKey == "" {
+		return nil, errors.New("missing -secret-key or AWS_SECRET_KEY environment variable")
 	}
 
 	sniff := flag.Bool("sniff", false, "Enable or disable sniffing")
@@ -57,12 +52,12 @@ func (conf *KibanaConfig) newElasticClient() (*elastic.Client, error) {
 	log.SetFlags(0)
 
 	signingClient := aws.NewV4SigningClient(awsauth.Credentials{
-		AccessKeyID:     conf.accessKey,
-		SecretAccessKey: conf.secretKey,
+		AccessKeyID:     accessKey,
+		SecretAccessKey: secretKey,
 	})
 
 	client, err := elastic.NewClient(
-		elastic.SetURL(conf.client),
+		elastic.SetURL(url),
 		elastic.SetSniff(*sniff),
 		elastic.SetHealthcheck(*sniff),
 		elastic.SetHttpClient(signingClient),
@@ -71,6 +66,5 @@ func (conf *KibanaConfig) newElasticClient() (*elastic.Client, error) {
 		log.Fatal(err)
 		return nil, err
 	}
-	fmt.Println("AWS ElasticSearchConnection succeeded")
-	return client, nil
+	return elogrus.NewAsyncElasticHook(client, "", logrus.DebugLevel, app)
 }
