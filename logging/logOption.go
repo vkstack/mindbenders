@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -28,7 +27,6 @@ func accessLogOptionBasic(app string) accessLogOption {
 		(*fields)["uriparams"] = parseGinUriParams(c.Params)
 		(*fields)["queryparams"] = c.Request.URL.Query()
 		(*fields)["userAgent"] = c.Request.UserAgent()
-		c.Set("time", time.Now())
 	}
 }
 

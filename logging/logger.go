@@ -104,8 +104,8 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
+		c.Set("time", start)
 		var fields = logrus.Fields{}
-
 		dLogger.safeRunAccessLogOptions(c, &fields)
 		var level = new(logrus.Level)
 		*level = logrus.InfoLevel
