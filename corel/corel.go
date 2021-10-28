@@ -98,6 +98,17 @@ func decodeBase64ToCorel(raw string, corel *CoRelationId) error {
 	}
 }
 
+func (corelid *CoRelationId) BasicOnceMust() {
+	if !corelid.isset {
+		corelid.mu.Lock()
+		defer corelid.mu.Unlock()
+		if !corelid.isset {
+			corelid.RequestID = xid.New().String()
+			corelid.SessionID = corelid.RequestID
+		}
+	}
+}
+
 func (corelid *CoRelationId) OnceMust(c *gin.Context, app string) {
 	if !corelid.isset {
 		corelid.mu.Lock()
