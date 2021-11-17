@@ -45,6 +45,12 @@ func (e *base) String() string {
 }
 
 func (e *base) Error() string {
+	if e == nil {
+		return ""
+	}
+	if e.cause == nil {
+		return e.msg
+	}
 	return e.msg + DefaultSeparator + e.cause.Error()
 }
 
@@ -54,6 +60,10 @@ func (e *base) Cause() error {
 
 func (e *base) Code() Code {
 	return e.code
+}
+
+func (e *base) UnWrap() error {
+	return e.cause
 }
 
 func Cause(err error) error {
