@@ -1,3 +1,3 @@
 package errors
 
-type Code interface{}
+// type Code interface{}
