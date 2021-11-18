@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
+
+	"gitlab.com/dotpe/mindbenders/errors"
+
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -58,7 +60,7 @@ func (corelid *CoRelationId) loadAuth() error {
 		}
 		raw, err := jwt.DecodeSegment(parts[1])
 		if err != nil {
-			return err
+			return errors.WrapMessage(err, "JWT decoding failed")
 		}
 		var jwtinfo dotJWTinfo
 		err = json.Unmarshal(raw, &jwtinfo)
@@ -92,9 +94,10 @@ func encCorelToBase64(corelid *CoRelationId) string {
 
 func decodeBase64ToCorel(raw string, corel *CoRelationId) error {
 	if rawbyte, err := base64.StdEncoding.DecodeString(raw); err != nil {
-		return err
+		return errors.WrapMessage(err, "base64 to corel struct decoding failed")
 	} else {
-		return json.Unmarshal(rawbyte, &corel)
+		err := json.Unmarshal(rawbyte, &corel)
+		return errors.WrapMessage(err, "raw base64 to corel struct unmarshalling failed")
 	}
 }
 

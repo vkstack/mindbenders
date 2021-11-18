@@ -2,10 +2,11 @@ package confmanager
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"os"
 	"path"
+
+	"gitlab.com/dotpe/mindbenders/errors"
 
 	"gitlab.com/dotpe/mindbenders/bootconfig/config"
 )
@@ -22,15 +23,15 @@ func GetFileConfigManager() (config.IConfig, error) {
 	cfgMgr := fileConfig{}
 	localConfig, err := os.Open(path.Join(os.Getenv("cwd"), os.Getenv("CONFIGDIR"), devconfig))
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapMessage(err, "config file not opening")
 	}
 	rawbytes, err := ioutil.ReadAll(localConfig)
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapMessage(err, "couldn't read from rawbytes")
 	}
 	err = json.Unmarshal(rawbytes, &cfgMgr.keyVal)
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapMessage(err, "couldn't unmarshall rawbytes")
 	}
 	//can have some preprocessing logic
 	return &cfgMgr, nil

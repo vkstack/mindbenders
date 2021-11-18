@@ -1,7 +1,5 @@
 package errors
 
-import "fmt"
-
 type base struct {
 	msg   string
 	cause error
@@ -76,14 +74,13 @@ func (e *base) Code() interface{} {
 */
 
 // e0->e1->e2->e3
-// e0 and e3 is ground level and top level errors
+// e0 and e3 are ground level and top level errors
 // UnWrap(e3) -> e2
 // Cause(e3) ->e0
 //fmt.Println(e) -> print msg
 //fmt.Println(e.Error()) ->prints msg-trace
 
 func Cause(err error) error {
-	fmt.Println(err)
 	if causer, ok := err.(interface{ Cause() error }); ok && causer.Cause() != nil {
 		return Cause(causer.Cause())
 	}

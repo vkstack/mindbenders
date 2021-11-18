@@ -2,8 +2,9 @@ package confmanager
 
 import (
 	"encoding/base64"
-	"fmt"
 	"strings"
+
+	"gitlab.com/dotpe/mindbenders/errors"
 
 	"gitlab.com/dotpe/mindbenders/bootconfig/config"
 
@@ -44,7 +45,7 @@ func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
 	// var secretString *string
 	result, err := svc.GetSecretValue(input)
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapMessage(err, "couldn't read from secret manager")
 	}
 	// Decrypts secret using the associated KMS CMK.
 	// Depending on whether the secret is a string or binary, one of these fields will be populated.
@@ -54,8 +55,7 @@ func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
 	decodedBinarySecretBytes := make([]byte, base64.StdEncoding.DecodedLen(len(result.SecretBinary)))
 	len, err := base64.StdEncoding.Decode(decodedBinarySecretBytes, result.SecretBinary)
 	if err != nil {
-		fmt.Println("Base64 Decode Error:", err)
-		return nil, err
+		return nil, errors.WrapMessage(err, "couldn't decode the read base64")
 	}
 	return decodedBinarySecretBytes[:len], nil
 }

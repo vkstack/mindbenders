@@ -1,7 +1,8 @@
 package logging
 
 import (
-	"errors"
+	"gitlab.com/dotpe/mindbenders/errors"
+
 	"flag"
 	"log"
 
