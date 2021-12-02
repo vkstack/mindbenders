@@ -11,6 +11,12 @@ func (c *ConfigValue) String() string {
 }
 
 type IConfig interface {
+	// env specific config
 	Get(string) ([]byte, error)
+
+	// env specific config
 	GetConfig(string) (ConfigValue, error)
+
+	// env specifig config
+	GetGlobal(string) ([]byte, error)
 }

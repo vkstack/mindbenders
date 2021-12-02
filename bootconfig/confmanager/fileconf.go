@@ -21,7 +21,7 @@ type fileConfig struct {
 
 func GetFileConfigManager() (config.IConfig, error) {
 	cfgMgr := fileConfig{}
-	localConfig, err := os.Open(path.Join(os.Getenv("cwd"), os.Getenv("CONFIGDIR"), devconfig))
+	localConfig, err := os.Open(path.Join(os.Getenv("CONFIGDIR"), devconfig))
 	if err != nil {
 		return nil, errors.WrapMessage(err, "config file not opening")
 	}
@@ -54,4 +54,9 @@ func (cfgmgr *fileConfig) GetConfig(key string) (raw config.ConfigValue, err err
 		return nil, err
 	}
 	return raw, nil
+}
+
+// Global config
+func (cfgmgr *fileConfig) GetGlobal(key string) (raw []byte, err error) {
+	return cfgmgr.Get(key)
 }

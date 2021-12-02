@@ -37,7 +37,7 @@ func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
 	newSession, _ := session.NewSession()
 	svc := secretsmanager.New(newSession, aws.NewConfig().WithRegion(awsRegion))
 	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(cfgmgr.getSearchKey(key)),
+		SecretId:     aws.String(key),
 		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified
 	}
 	// In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
@@ -61,8 +61,13 @@ func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
 }
 
 func (cfgmgr *secretManager) GetConfig(key string) (raw config.ConfigValue, err error) {
-	if raw, err = cfgmgr.Get(key); err != nil {
+	if raw, err = cfgmgr.Get(cfgmgr.getSearchKey(key)); err != nil {
 		return nil, err
 	}
 	return raw, nil
+}
+
+// env specifig config
+func (cfgmgr *secretManager) GetGlobal(key string) (raw []byte, err error) {
+	return cfgmgr.Get(key)
 }
