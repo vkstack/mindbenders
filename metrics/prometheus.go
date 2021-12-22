@@ -10,11 +10,26 @@ import (
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
+type profOpt func(*ginprometheus.Prometheus)
+
+func WithRouter(router *gin.Engine) profOpt {
+	return func(p *ginprometheus.Prometheus) {
+		p.ReqCntURLLabelMappingFn = func(c *gin.Context) string { return c.FullPath() }
+		router.Use(customCollector(p))
+		p.Use(router)
+	}
+}
+
+func AttachPrometheusExporter(opts ...profOpt) {
+	p := ginprometheus.NewPrometheus("gin")
+	for _, opt := range opts {
+		opt(p)
+	}
+}
+
 func SetPrometheusMetricsOnGin(router *gin.Engine) {
 	p := ginprometheus.NewPrometheus("gin")
-	p.ReqCntURLLabelMappingFn = func(c *gin.Context) string { return c.FullPath() }
-	router.Use(customCollector(p))
-	p.Use(router)
+	WithRouter(router)(p)
 }
 
 func customCollector(p *ginprometheus.Prometheus) gin.HandlerFunc {
