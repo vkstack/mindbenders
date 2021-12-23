@@ -43,13 +43,14 @@ func WithDBPoolMetrics(db *sql.DB, d time.Duration, lablevalue DBCollectorLables
 		d = defaultDuration
 	}
 	var waitCount int64
-	var dur time.Duration
+	var waitDurTillnow time.Duration
 	go func() {
 		for {
 			time.Sleep(d)
 			stats := db.Stats()
 			dbcollector.WithLabelValues(lablevalue.Type, lablevalue.App).Add(float64(stats.WaitCount - waitCount))
-			dbWaitdurationCollector.WithLabelValues(lablevalue.Type, lablevalue.App).Add((stats.WaitDuration - dur).Seconds())
+			dbWaitdurationCollector.WithLabelValues(lablevalue.Type, lablevalue.App).Add((stats.WaitDuration - waitDurTillnow).Seconds())
+			waitDurTillnow = stats.WaitDuration
 			waitCount = stats.WaitCount
 		}
 	}()
