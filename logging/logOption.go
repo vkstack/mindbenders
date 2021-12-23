@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -58,7 +59,10 @@ func AccessLogOptionJWTLogging(c *gin.Context, fields *logrus.Fields) {
 type logOption func(ctx context.Context, fields *logrus.Fields)
 
 func logOptionBasic(ctx context.Context, fields *logrus.Fields) {
-	coRelationID, _ := corel.GetCorelationId(ctx)
+	coRelationID, err := corel.GetCorelationId(ctx)
+	if err != nil {
+		log.Println("invalid corelId: ", err.Error())
+	}
 	(*fields)["requestID"] = coRelationID.RequestID
 	(*fields)["sessionID"] = coRelationID.SessionID
 	(*fields)["hop"] = coRelationID.Hop
