@@ -49,7 +49,7 @@ func (cfgmgr *fileConfig) Get(key string) ([]byte, error) {
 	return nil, errors.New("no such config exists:\t" + key)
 }
 
-func (cfgmgr *fileConfig) GetConfig(key string) (raw config.ConfigValue, err error) {
+func (cfgmgr *fileConfig) GetConfig(key string) (raw []byte, err error) {
 	if raw, err = cfgmgr.Get(key); err != nil {
 		return nil, err
 	}

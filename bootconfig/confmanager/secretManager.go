@@ -33,7 +33,7 @@ func (cfgmgr *secretManager) getSearchKey(key string) string {
 }
 
 //Create a Secrets Manager client
-func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
+func (cfgmgr *secretManager) get(key string) ([]byte, error) {
 	newSession, _ := session.NewSession()
 	svc := secretsmanager.New(newSession, aws.NewConfig().WithRegion(awsRegion))
 	input := &secretsmanager.GetSecretValueInput{
@@ -60,8 +60,9 @@ func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
 	return decodedBinarySecretBytes[:len], nil
 }
 
-func (cfgmgr *secretManager) GetConfig(key string) (raw config.ConfigValue, err error) {
-	if raw, err = cfgmgr.Get(cfgmgr.getSearchKey(key)); err != nil {
+func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
+	raw, err := cfgmgr.get(cfgmgr.getSearchKey(key))
+	if err != nil {
 		return nil, err
 	}
 	return raw, nil
@@ -69,5 +70,5 @@ func (cfgmgr *secretManager) GetConfig(key string) (raw config.ConfigValue, err 
 
 // env specifig config
 func (cfgmgr *secretManager) GetGlobal(key string) (raw []byte, err error) {
-	return cfgmgr.Get(key)
+	return cfgmgr.get(key)
 }
