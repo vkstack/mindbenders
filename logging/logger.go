@@ -8,6 +8,7 @@ import (
 	"math"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -27,7 +28,8 @@ type dlogger struct {
 func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fields) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("unknown error while operating logOptions", r)
+			stack := fmt.Sprintf("%v\n%s", r, debug.Stack())
+			log.Println("unknown error while operating logOptions\n", stack)
 		}
 	}()
 	for _, opt := range dlogger.loptions {
@@ -40,7 +42,8 @@ func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fi
 func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields *logrus.Fields) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("unknown error while operating accesslogOptions", r)
+			stack := fmt.Sprintf("%v\n%s", r, debug.Stack())
+			log.Println("unknown error while operating accesslogOptions\n", stack)
 		}
 	}()
 	for _, opt := range dlogger.accopts {

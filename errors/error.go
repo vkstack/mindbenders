@@ -23,6 +23,10 @@ func New(msg string) error {
 	return &base{msg: msg}
 }
 
+func NewWithError(err error) error {
+	return &base{msg: err.Error(), cause: err}
+}
+
 func NewWithCode(msg string, code interface{}) error {
 	return &base{msg: msg, code: code}
 }
