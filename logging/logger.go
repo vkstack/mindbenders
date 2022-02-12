@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/dotpe/mindbenders/errors"
 )
 
 type dlogger struct {
@@ -80,11 +81,15 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	}
 	dLogger.safeRunLogOptions(ctx, &fields)
 	for idx := range fields {
-		switch fields[idx].(type) {
+		switch x := fields[idx].(type) {
 		case int8, int16, int32, int64, int,
 			uint8, uint16, uint32, uint64, uint,
 			float32, float64,
 			string, bool:
+		case error:
+			if _, ok := x.(errors.BaseError); !ok {
+				fields[idx] = x.Error()
+			}
 		default:
 			tmp, _ := json.Marshal(fields[idx])
 			fields[idx] = string(tmp)

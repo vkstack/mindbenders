@@ -1,5 +1,11 @@
 package errors
 
+type BaseError interface {
+	error
+	String() string
+	Cause() error
+	Code() interface{}
+}
 type base struct {
 	msg   string
 	cause error
