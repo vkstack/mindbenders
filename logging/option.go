@@ -2,16 +2,22 @@ package logging
 
 import (
 	"io/ioutil"
+	"log"
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
 
 type Option func(dlogger *dlogger)
 
-func WithAppInfo(app, env, wd string) Option {
+func WithAppInfo(app string) Option {
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 	return func(dlogger *dlogger) {
 		dlogger.app = app
-		dlogger.env = env
+		dlogger.env = os.Getenv("ENV")
 		dlogger.wd = wd
 	}
 }

@@ -2,6 +2,8 @@ package logging
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"path"
 	"time"
 
@@ -13,7 +15,15 @@ type FileLogConfig struct {
 	logdir, app string
 }
 
-func NewFileHookContainer(logdir, app string) IHookContainer {
+func NewFileHookContainer(app string) IHookContainer {
+	logdir := os.Getenv("LOGDIR")
+	stat, err := os.Stat(logdir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !stat.IsDir() {
+		log.Fatal("specified path is not a directory: ", logdir)
+	}
 	return &FileLogConfig{
 		logdir: logdir,
 		app:    app,
