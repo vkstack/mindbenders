@@ -27,15 +27,17 @@ type dlogger struct {
 }
 
 func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fields) {
-	defer func() {
-		if r := recover(); r != nil {
-			stack := fmt.Sprintf("%v\n%s", r, debug.Stack())
-			log.Println("unknown error while operating logOptions\n", stack)
-		}
-	}()
 	for _, opt := range dlogger.loptions {
 		if opt != nil {
-			opt(ctx, fields)
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						stack := fmt.Sprintf("%v\n%s", r, debug.Stack())
+						log.Println("unknown error while operating logOptions\n", stack)
+					}
+				}()
+				opt(ctx, fields)
+			}()
 		}
 	}
 }

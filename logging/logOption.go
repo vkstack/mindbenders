@@ -61,7 +61,7 @@ type logOption func(ctx context.Context, fields *logrus.Fields)
 func logOptionBasic(ctx context.Context, fields *logrus.Fields) {
 	coRelationID, err := corel.GetCorelationId(ctx)
 	if err != nil {
-		log.Println("invalid corelId: ", err.Error())
+		log.Panicln("invalid corelId: ", err.Error())
 	}
 	(*fields)["requestID"] = coRelationID.RequestID
 	(*fields)["sessionID"] = coRelationID.SessionID

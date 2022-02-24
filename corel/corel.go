@@ -40,6 +40,11 @@ type CoRelationId struct {
 	mu    sync.Mutex
 	enc   string
 }
+
+func NewCoRelationId(sessionId string) *CoRelationId {
+	return &CoRelationId{SessionID: sessionId}
+}
+
 type dotJWTinfo struct {
 	TenantID  int    `json:"TenantId"`
 	StoreID   int    `json:"StoreId"`
@@ -112,13 +117,15 @@ func (corelid *CoRelationId) BasicOnceMust() {
 	}
 }
 
-func (corelid *CoRelationId) OnceMust(c *gin.Context, app string) {
+func (corelid *CoRelationId) OnceMust(c context.Context, app string) {
 	if !corelid.isset {
 		corelid.mu.Lock()
 		if !corelid.isset {
-			rawcorel := c.Request.Header.Get("corel")
-			if len(rawcorel) > 0 {
-				decodeBase64ToCorel(rawcorel, corelid)
+			if gc, ok := c.(*gin.Context); ok {
+				rawcorel := gc.Request.Header.Get("corel")
+				if len(rawcorel) > 0 {
+					decodeBase64ToCorel(rawcorel, corelid)
+				}
 			}
 			if len(corelid.RequestID) == 0 {
 				corelid.loadAuth()
@@ -168,4 +175,15 @@ func AttachCorelToHttpFromCtx(ctx context.Context, req *http.Request) {
 	if corelid, err := GetCorelationId(ctx); err == nil {
 		AttachCorelToHttp(corelid, req)
 	}
+}
+
+func NewCorelCtx(sessionId, app string) context.Context {
+	return NewCorelCtxFromCtx(context.Background(), sessionId, app)
+}
+
+func NewCorelCtxFromCtx(ctx context.Context, sessionId, app string) context.Context {
+	corelId := NewCoRelationId(sessionId)
+	corelId.OnceMust(ctx, app)
+	ctx = context.WithValue(ctx, corel, corelId)
+	return ctx
 }

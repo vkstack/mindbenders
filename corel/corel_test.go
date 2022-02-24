@@ -1,6 +1,8 @@
 package corel
 
 import (
+	"context"
+	"reflect"
 	"testing"
 )
 
@@ -24,6 +26,36 @@ func TestCoRelationId_loadAuth(t *testing.T) {
 				Auth: tt.fields.Auth,
 			}
 			corelid.loadAuth()
+		})
+	}
+}
+
+func TestNewCorelCtx(t *testing.T) {
+	type args struct {
+		sessionId string
+		app       string
+	}
+	tests := []struct {
+		name string
+		args args
+		want context.Context
+	}{
+		{
+			name: "test-1",
+			args: args{
+				sessionId: "test-session",
+				app:       "test-app",
+			},
+		},
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewCorelCtx(tt.args.sessionId, tt.args.app); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewCorelCtx() = %v, want %v", got, tt.want)
+			} else {
+				t.Log(got)
+			}
 		})
 	}
 }
