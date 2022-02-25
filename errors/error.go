@@ -61,7 +61,13 @@ func (e *base) String() string {
 	if e.cause == nil {
 		return e.msg
 	}
-	return e.msg + DefaultSeparator + e.cause.Error()
+	var rest string
+	if be, ok := e.cause.(*base); ok {
+		rest = be.String()
+	} else {
+		rest = e.cause.Error()
+	}
+	return e.msg + DefaultSeparator + rest
 }
 
 func (e *base) Error() string {

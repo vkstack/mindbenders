@@ -89,7 +89,9 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 			float32, float64,
 			string, bool:
 		case error:
-			if _, ok := x.(errors.BaseError); !ok {
+			if be, ok := x.(errors.BaseError); ok {
+				fields[idx] = be.String()
+			} else {
 				fields[idx] = x.Error()
 			}
 		default:
