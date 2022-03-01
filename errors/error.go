@@ -65,13 +65,10 @@ func (e *base) String() string {
 	if e.cause == nil {
 		return e.msg
 	}
-	var rest string
-	if be, ok := e.cause.(BaseError); ok {
-		rest = be.String()
-	} else {
-		rest = e.cause.Error()
+	if cause, ok := e.cause.(BaseError); ok {
+		return e.msg + DefaultSeparator + cause.String()
 	}
-	return e.msg + DefaultSeparator + rest
+	return e.msg + DefaultSeparator + e.cause.Error()
 }
 
 func (e *base) Error() string {
@@ -94,7 +91,7 @@ func Cause(err error) error {
 }
 
 func UnWrap(err error) error {
-	if causer, ok := err.(causer); ok && causer.Cause() != nil {
+	if causer, ok := err.(causer); ok {
 		return causer.Cause()
 	}
 	return err
