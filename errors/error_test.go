@@ -1,85 +1,133 @@
 package errors
 
 import (
-	"fmt"
 	"testing"
 )
 
+var (
+	e0 = New("base-error")
+	e1 = WrapMessage(e0, "wrapped e0")
+	e2 = WrapMessage(e1, "wrapped e1")
+	e3 = WrapMessage(e2, "wrapped e2")
+)
+
 func Test_base_Error(t *testing.T) {
-	type fields struct {
-		msg   string
-		cause error
-		code  interface{}
-	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   string
+		name  string
+		error error
+		want  string
 	}{
 		{
-			"test-1",
-			fields{
-				msg: "test-1",
-			},
-			"test-1",
+			name:  "test-0",
+			error: e0,
+			want:  "base-error",
 		},
-		// TODO: Add test cases.
+		{
+			name:  "test-1",
+			error: e1,
+			want:  "wrapped e0",
+		},
+		{
+			name:  "test-2",
+			error: e2,
+			want:  "wrapped e1",
+		},
+		{
+			name:  "test-3",
+			error: e3,
+			want:  "wrapped e2",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &base{
-				msg:   tt.fields.msg,
-				cause: tt.fields.cause,
-				code:  tt.fields.code,
-			}
-			if got := e.Error(); got != tt.want {
-				t.Errorf("base.Error() = %v, want %v", got, tt.want)
+			if e, ok := tt.error.(BaseError); !ok {
+				return
+			} else {
+				if got := e.Error(); got != tt.want {
+					t.Errorf("base.Error() = %v, want %v", got, tt.want)
+				}
 			}
 		})
 	}
 }
 
 func Test_base_String(t *testing.T) {
-	type fields struct {
-		msg   string
-		cause error
-		code  interface{}
-	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   string
+		name  string
+		error error
+		want  string
 	}{
 		{
-			name: "test-1",
-			fields: fields{
-				msg: "m1",
-				cause: &base{
-					msg: "m2",
-					cause: &base{
-						msg: "m3",
-						cause: &base{
-							msg: "m4",
-						},
-					},
-				},
-			},
+			name:  "test-0",
+			error: e0,
+			want:  "base-error",
 		},
-		// TODO: Add test cases.
+		{
+			name:  "test-1",
+			error: e1,
+			want:  "wrapped e0\nbase-error",
+		},
+		{
+			name:  "test-2",
+			error: e2,
+			want:  "wrapped e1\nwrapped e0\nbase-error",
+		},
+		{
+			name:  "test-3",
+			error: e3,
+			want:  "wrapped e2\nwrapped e1\nwrapped e0\nbase-error",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &base{
-				msg:   tt.fields.msg,
-				cause: tt.fields.cause,
-				code:  tt.fields.code,
+			if e, ok := tt.error.(BaseError); !ok {
+				return
+			} else {
+				var got string
+				if got = e.String(); got != tt.want {
+					t.Errorf("base.String() = %v, want %v", got, tt.want)
+				} else {
+					t.Logf(got)
+				}
 			}
-			if got := e.String(); got != tt.want {
-				t.Errorf("base.String() = %v, want %v", got, tt.want)
+		})
+	}
+}
+
+func TestCause(t *testing.T) {
+	tests := []struct {
+		name string
+		error,
+		want error
+	}{
+		{
+			name:  "test-0",
+			error: e0,
+			want:  e0,
+		},
+		{
+			name:  "test-1",
+			error: e1,
+			want:  e0,
+		},
+		{
+			name:  "test-2",
+			error: e2,
+			want:  e0,
+		},
+		{
+			name:  "test-3",
+			error: e3,
+			want:  e0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Cause(tt.error); got != tt.want {
+				t.Errorf("base.Cause() error = %v, wantErr %v", got, tt.want)
+			} else {
+				t.Logf("%v", got)
 			}
-			fmt.Println(e)
-			fmt.Println(e.Error())
-			fmt.Println(e.String())
 		})
 	}
 }

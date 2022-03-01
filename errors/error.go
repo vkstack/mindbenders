@@ -1,9 +1,13 @@
 package errors
 
+type causer interface {
+	Cause() error
+}
+
 type BaseError interface {
 	error
+	causer
 	String() string
-	Cause() error
 	Code() interface{}
 }
 type base struct {
@@ -62,7 +66,7 @@ func (e *base) String() string {
 		return e.msg
 	}
 	var rest string
-	if be, ok := e.cause.(*base); ok {
+	if be, ok := e.cause.(BaseError); ok {
 		rest = be.String()
 	} else {
 		rest = e.cause.Error()
@@ -82,29 +86,15 @@ func (e *base) Code() interface{} {
 	return e.code
 }
 
-/**
-{
-	"error":Cause(e),
-	"errMsg":e.Error(),
-}
-*/
-
-// e0->e1->e2->e3
-// e0 and e3 are ground level and top level errors
-// UnWrap(e3) -> e2
-// Cause(e3) ->e0
-//fmt.Println(e) -> print msg
-//fmt.Println(e.Error()) ->prints msg-trace
-
 func Cause(err error) error {
-	if causer, ok := err.(interface{ Cause() error }); ok && causer.Cause() != nil {
+	if causer, ok := err.(causer); ok && causer.Cause() != nil {
 		return Cause(causer.Cause())
 	}
 	return err
 }
 
 func UnWrap(err error) error {
-	if causer, ok := err.(interface{ Cause() error }); ok && causer.Cause() != nil {
+	if causer, ok := err.(causer); ok && causer.Cause() != nil {
 		return causer.Cause()
 	}
 	return err
