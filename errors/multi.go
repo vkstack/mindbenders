@@ -31,11 +31,14 @@ func (e *multierror) String() string {
 }
 
 func NewMultiError(errs ...error) error {
-	me := multierror{}
+	var me multierror
 	for _, e := range errs {
 		if e != nil {
 			me = append(me, e)
 		}
+	}
+	if me == nil {
+		return nil
 	}
 	return &me
 }
