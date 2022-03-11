@@ -1,12 +1,13 @@
 package errors
 
+import "fmt"
+
 type causer interface {
 	Cause() error
 }
 
 type BaseError interface {
 	error
-	causer
 	String() string
 	Code() interface{}
 }
@@ -65,7 +66,7 @@ func (e *base) String() string {
 	if e.cause == nil {
 		return e.msg
 	}
-	if cause, ok := e.cause.(BaseError); ok {
+	if cause, ok := e.cause.(fmt.Stringer); ok {
 		return e.msg + DefaultSeparator + cause.String()
 	}
 	return e.msg + DefaultSeparator + e.cause.Error()

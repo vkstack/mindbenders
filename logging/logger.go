@@ -14,7 +14,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/dotpe/mindbenders/errors"
 )
 
 type dlogger struct {
@@ -89,7 +88,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 			float32, float64,
 			string, bool:
 		case error:
-			if be, ok := x.(errors.BaseError); ok {
+			if be, ok := x.(fmt.Stringer); ok {
 				fields[idx] = be.String()
 			} else {
 				fields[idx] = x.Error()
