@@ -1,6 +1,7 @@
 package profiler
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -200,14 +201,20 @@ func (p *profiler) send() {
 		case <-p.exit:
 			return
 		case bat := <-p.out:
-			if err := p.uploader.Upload(bat, p.cfg.Service); err != nil {
-				// TODO: Use mindbenders logger to log the error
-			}
-			// if err := p.uploadFunc(bat); err != nil {
-			// 	// TODO: Use mindbenders logger to log the error
-			// }
+			p.UploadProfile(&bat)
 		}
 	}
+}
+
+func (p *profiler) UploadProfile(b *entity.Batch) error {
+	for _, prof := range b.Profiles {
+		// 	// 	fileDest := fmt.Sprintf("%s.%s", target, prof.Name)
+		hn, _ := os.Hostname()
+		target := b.Start.Format("2006-01-02/15:04:05") + "-" + hn + "." + prof.Name
+		p.uploader.UploadProfile(target, bytes.NewReader(prof.Data))
+	}
+	// p.uploader.Upload(bat, p.cfg.Service)
+	return nil
 }
 
 func (p *profiler) outputDir(bat entity.Batch) error {

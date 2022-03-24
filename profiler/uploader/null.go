@@ -1,6 +1,6 @@
 package uploader
 
-import "gitlab.com/dotpe/mindbenders/profiler/entity"
+import "io"
 
 type nullUploader struct{}
 
@@ -8,6 +8,6 @@ func NewNullUploader() IProfileUploader {
 	return &nullUploader{}
 }
 
-func (up *nullUploader) Upload(bat entity.Batch, serviceName string) error {
+func (up *nullUploader) UploadProfile(target string, rs io.ReadSeeker) error {
 	return nil
 }

@@ -1,7 +1,9 @@
 package uploader
 
-import "gitlab.com/dotpe/mindbenders/profiler/entity"
+import (
+	"io"
+)
 
 type IProfileUploader interface {
-	Upload(bat entity.Batch, serviceName string) error
+	UploadProfile(target string, rs io.ReadSeeker) error
 }

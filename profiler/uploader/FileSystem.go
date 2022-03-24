@@ -1,36 +1,25 @@
 package uploader
 
 import (
-	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
+	"path"
 	"path/filepath"
-
-	"gitlab.com/dotpe/mindbenders/profiler/entity"
 )
 
 type saveToFileSystem struct{}
 
-func (sm *saveToFileSystem) Upload(bat entity.Batch, serviceName string) error {
-
-	fmt.Println("STORING!!")
-
-	// Basic ISO 8601 Format in UTC as the name for the directories.
-	dir := bat.End.UTC().Format("20060102T150405Z")
-	dirPath := filepath.Join("profiles", dir)
-	// 0755 is what mkdir does, should be reasonable for the use cases here.
-	if err := os.MkdirAll(dirPath, 0755); err != nil {
+func (sm *saveToFileSystem) UploadProfile(target string, rs io.ReadSeeker) error {
+	target = filepath.Join("profiles", target)
+	if err := os.MkdirAll(path.Dir(target), 0755); err != nil {
 		return err
 	}
-
-	for _, prof := range bat.Profiles {
-		filePath := filepath.Join(dirPath, prof.Name)
-		// 0644 is what touch does, should be reasonable for the use cases here.
-		if err := ioutil.WriteFile(filePath, prof.Data, 0644); err != nil {
-			return err
-		}
+	if f, err := os.Open(target); err != nil {
+		return err
+	} else {
+		_, err = io.Copy(f, rs)
+		return err
 	}
-	return nil
 }
 
 func GetFileSaver() IProfileUploader {
