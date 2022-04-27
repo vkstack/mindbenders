@@ -14,7 +14,7 @@ const lookupkey = "rl:locations"
 func IsRunnable(c *gin.Context, resource string) bool {
 	c.Set(lookupkey, resource)
 	c.Next()
-	return c.IsAborted()
+	return !c.IsAborted()
 }
 
 func Eval(ctx context.Context, limiter *redis_rate.Limiter, limit redis_rate.Limit, key string) bool {
