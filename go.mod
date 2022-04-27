@@ -7,6 +7,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
+	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/google/pprof v0.0.0-20211008130755-947d60d73cc0
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/olivere/elastic/v7 v7.0.4
