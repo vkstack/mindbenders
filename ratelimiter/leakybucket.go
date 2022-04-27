@@ -20,15 +20,18 @@ func Eval(ctx context.Context, limiter *redis_rate.Limiter, limit redis_rate.Lim
 	if err != nil {
 		return false
 	}
-	return res.Allowed+res.Remaining <= 0
+	return res.Allowed+res.Remaining > 0
 }
 
 func LimitUserByResourceExt(limiter *redis_rate.Limiter, limit redis_rate.Limit) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		key := strings.Join([]string{c.ClientIP(), c.Request.Method, c.FullPath()}, ":")
-		if !Eval(c, limiter, limit, key) {
-			c.Abort()
-			c.JSON(http.StatusTooManyRequests, gin.H{"status": false, "message": "too many requests"})
+		if data, ok := c.Get(lookupkey); ok {
+			if resource, ok := data.(string); ok {
+				if !Eval(c, limiter, limit, resource) {
+					c.Abort()
+					c.JSON(http.StatusTooManyRequests, gin.H{"status": false, "message": "too many requests"})
+				}
+			}
 		}
 	}
 }
