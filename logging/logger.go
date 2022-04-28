@@ -107,10 +107,11 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	}
 	fields["caller"] = strings.ReplaceAll(fields["caller"].(string), dLogger.wd, "")
 	entry := dLogger.logger.WithFields(fields)
-	if t, ok := ctx.Value("time").(time.Time); ok {
-		entry.Time = t
-	} else {
-		entry.Time = time.Now()
+	entry.Time = time.Now()
+	if t, ok := fields["time"]; ok {
+		if ts, ok := t.(time.Time); ok {
+			entry.Time = ts
+		}
 	}
 	entry.Log(cb, MessageKey)
 }
@@ -119,13 +120,13 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		c.Set("time", start)
 		var fields = logrus.Fields{}
 		dLogger.safeRunAccessLogOptions(c, &fields)
 		var level = new(logrus.Level)
 		*level = logrus.InfoLevel
 
 		//deferred request log
+		fields["time"] = start
 		defer dLogger.WriteLogs(c, fields, *level, "access-log")
 
 		fields["statusCode"] = 0
