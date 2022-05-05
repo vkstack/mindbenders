@@ -33,6 +33,7 @@ func PathGetterWithApp(app string) PathGenerator {
 func NewUploaderWithBucket(app, bucket string) *S3Uploader {
 	uploader := S3Uploader{
 		prefpath: path.Join(os.Getenv("ENV"), app),
+		bucket:   bucket,
 	}
 	s, err := session.NewSession(&aws.Config{Region: aws.String(os.Getenv("AWS_REGION"))})
 	if err != nil {
