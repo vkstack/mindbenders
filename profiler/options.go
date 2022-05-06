@@ -98,6 +98,6 @@ func WithUploader(uploader uploader.IProfileUploader) Option {
 
 func WithTargetSetter(cfg *Config) {
 	cfg.OutputDirFn = func(t time.Time) string {
-		return path.Join(os.Getenv("ENV"), cfg.Service, t.Format("2006-01-02"), cfg.Host, t.Format("15:04:05")+"."+cfg.Host)
+		return path.Join(os.Getenv("ENV"), cfg.Service, t.Format("2006-01-02"), cfg.Host, t.Format("15:04:05.000"))
 	}
 }
