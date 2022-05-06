@@ -3,6 +3,7 @@ package profiler
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -26,13 +27,13 @@ var defaultUploader = uploader.NewNullUploader()
 type Config struct {
 	// targetURL is the upload destination URL. It will be set by the profiler on start to either apiURL or agentURL
 	// based on the other options.
-	Service, env      string
+	Service, Host     string
 	Types             map[ProfileType]struct{}
 	Period            time.Duration
 	CpuDuration       time.Duration
 	UploadTimeout     time.Duration
 	MaxGoroutinesWait int
-	OutputDir         string
+	OutputDirFn       func(time.Time) string
 	uploader          uploader.IProfileUploader
 }
 
@@ -53,7 +54,9 @@ func (c *Config) addProfileType(t ProfileType) {
 }
 
 func defaultConfig() (*Config, error) {
+	hn, _ := os.Hostname()
 	c := Config{
+		Host:              hn,
 		Service:           filepath.Base(os.Args[0]),
 		Period:            DefaultPeriod,
 		CpuDuration:       DefaultDuration,
@@ -64,12 +67,8 @@ func defaultConfig() (*Config, error) {
 	for _, t := range defaultProfileTypes {
 		c.addProfileType(t)
 	}
-
 	if v := os.Getenv("MINDBENDERS_SERVICE"); v != "" {
 		WithService(v)(&c)
-	}
-	if v := "."; v != "" {
-		withOutputDir(v)(&c)
 	}
 	if v := os.Getenv("PROFILING_WAIT_PROFILE_MAX_GOROUTINES"); v != "" {
 		n, err := strconv.Atoi(v)
@@ -84,15 +83,6 @@ func defaultConfig() (*Config, error) {
 // An Option is used to configure the profiler's behaviour.
 type Option func(*Config)
 
-// withOutputDir writes a copy of all uploaded profiles to the given
-// directory. This is intended for local development or debugging uploading
-// issues. The directory will keep growing, no cleanup is performed.
-func withOutputDir(dir string) Option {
-	return func(cfg *Config) {
-		cfg.OutputDir = dir
-	}
-}
-
 // WithService specifies the service name to attach to a profile.
 func WithService(name string) Option {
 	return func(cfg *Config) {
@@ -103,5 +93,11 @@ func WithService(name string) Option {
 func WithUploader(uploader uploader.IProfileUploader) Option {
 	return func(cfg *Config) {
 		cfg.uploader = uploader
+	}
+}
+
+func WithTargetSetter(cfg *Config) {
+	cfg.OutputDirFn = func(t time.Time) string {
+		return path.Join(os.Getenv("ENV"), cfg.Service, t.Format("2006-01-02"), cfg.Host, t.Format("15:04:05")+"."+cfg.Host)
 	}
 }

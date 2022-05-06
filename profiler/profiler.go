@@ -3,9 +3,8 @@ package profiler
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
+	"path"
 	"sync"
 	"time"
 
@@ -98,6 +97,7 @@ func newProfiler(opts ...Option) (*profiler, error) {
 		met:  newMetrics(),
 		prev: make(map[ProfileType]*pprofile.Profile),
 	}
+
 	p.uploader = cfg.uploader
 	return &p, nil
 }
@@ -207,34 +207,15 @@ func (p *profiler) send() {
 }
 
 func (p *profiler) UploadProfile(b *entity.Batch) error {
+	b.Start = b.Start.Local()
 	for _, prof := range b.Profiles {
-		// 	// 	fileDest := fmt.Sprintf("%s.%s", target, prof.Name)
-		hn, _ := os.Hostname()
-		target := b.Start.Format("2006-01-02/15:04:05") + "-" + hn + "." + prof.Name
-		p.uploader.UploadProfile(target, bytes.NewReader(prof.Data))
-	}
-	// p.uploader.Upload(bat, p.cfg.Service)
-	return nil
-}
-
-func (p *profiler) outputDir(bat entity.Batch) error {
-	if p.cfg.OutputDir == "" {
-		return nil
-	}
-	// Basic ISO 8601 Format in UTC as the name for the directories.
-	dir := bat.End.UTC().Format("20060102T150405Z")
-	dirPath := filepath.Join(p.cfg.OutputDir, dir)
-	// 0755 is what mkdir does, should be reasonable for the use cases here.
-	if err := os.MkdirAll(dirPath, 0755); err != nil {
-		return err
-	}
-
-	for _, prof := range bat.Profiles {
-		filePath := filepath.Join(dirPath, prof.Name)
-		// 0644 is what touch does, should be reasonable for the use cases here.
-		if err := ioutil.WriteFile(filePath, prof.Data, 0644); err != nil {
-			return err
+		var target string
+		if p.cfg.OutputDirFn == nil {
+			target = path.Join(os.Getenv("ENV"), p.cfg.Service, b.Start.Format("2006-01-02/15:04:05")+"-"+p.cfg.Host+"."+prof.Name)
+		} else {
+			target = p.cfg.OutputDirFn(b.Start) + "." + prof.Name
 		}
+		p.uploader.UploadProfile(target, bytes.NewReader(prof.Data))
 	}
 	return nil
 }
