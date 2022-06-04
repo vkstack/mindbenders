@@ -11,6 +11,9 @@ import (
 
 const lookupkey = "rl:locations"
 
+/*
+	It has to be used along with Postware middlewares only
+*/
 func IsRunnable(c *gin.Context, resource string) bool {
 	c.Set(lookupkey, resource)
 	c.Next()
@@ -25,7 +28,11 @@ func Eval(ctx context.Context, limiter *redis_rate.Limiter, limit redis_rate.Lim
 	return res.Allowed+res.Remaining > 0
 }
 
-func LimitUserByResourceExt(limiter *redis_rate.Limiter, limit redis_rate.Limit) gin.HandlerFunc {
+/*
+	This has to be put after actual handler, since it requires input from actual handler.
+	The control is passed using c.Next(), which on limit reach inform in c.c.IsAborted()
+*/
+func PostwareLimitUser(limiter *redis_rate.Limiter, limit redis_rate.Limit) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if data, ok := c.Get(lookupkey); ok {
 			if resource, ok := data.(string); ok {
@@ -38,7 +45,10 @@ func LimitUserByResourceExt(limiter *redis_rate.Limiter, limit redis_rate.Limit)
 	}
 }
 
-func LimitUserByResource(limiter *redis_rate.Limiter, limit redis_rate.Limit) gin.HandlerFunc {
+/*
+	This has to be put before actual handler, since it doesn't require any input from actual handler
+*/
+func PrewareLimitUser(limiter *redis_rate.Limiter, limit redis_rate.Limit) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := strings.Join([]string{c.ClientIP(), c.Request.Method, c.FullPath()}, ":")
 		if !Eval(c, limiter, limit, key) {

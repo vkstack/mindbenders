@@ -98,9 +98,9 @@ func WithUploader(uploader uploader.IProfileUploader) Option {
 
 /*
 	The below targetsetter is a very general pathsetter
-	the location of the profiles will be as follows
+		the location of the profiles will be as follows
 	--------{ENV}	>>	{Service}	>>	{Date (YYYY-MM-DD)}
-				>>	{Host}	>>	{Hour}	>>	{Minute:Second}	>>	{{{all profiles}}}
+		>>	{Host}	>>	{Hour}	>>	{Minute:Second}	>>	{{{all profiles}}}
 */
 
 func WithTargetSetter(cfg *Config) {
