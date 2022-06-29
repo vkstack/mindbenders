@@ -6,6 +6,8 @@ require (
 	github.com/aws/aws-sdk-go v1.19.6
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/emirpasic/gods v1.18.1
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-redis/redis_rate/v9 v9.1.2
