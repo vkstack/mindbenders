@@ -5,12 +5,19 @@ import (
 	"strings"
 )
 
-type MultiError struct{ errs []error }
+type MultiError interface {
+	error
+	AddErrors(errs ...error) MultiError
+	IsNil() bool
+	Err() error
+}
 
-func DefaultMultiError() *MultiError { return &MultiError{} }
+type multierror []error
 
-func NewMultiError(errs ...error) *MultiError {
-	var me MultiError
+func DefaultMultiError() MultiError { return &multierror{} }
+
+func NewMultiError(errs ...error) MultiError {
+	var me multierror
 	me.AddErrors(errs...)
 	if me.IsNil() {
 		return nil
@@ -18,12 +25,12 @@ func NewMultiError(errs ...error) *MultiError {
 	return &me
 }
 
-func (e *MultiError) Error() string {
+func (e *multierror) Error() string {
 	if e == nil {
 		return "nil"
 	}
 	var msg string
-	for _, _e := range e.errs {
+	for _, _e := range *e {
 		if e != nil {
 			msg += ("\n" + _e.Error())
 		}
@@ -31,12 +38,12 @@ func (e *MultiError) Error() string {
 	return strings.Trim(msg, "\n")
 }
 
-func (e *MultiError) String() string {
+func (e *multierror) String() string {
 	if e == nil {
 		return "nil"
 	}
 	var msg string
-	for _, _e := range e.errs {
+	for _, _e := range *e {
 		if e == nil {
 			continue
 		}
@@ -49,22 +56,22 @@ func (e *MultiError) String() string {
 	return strings.Trim(msg, "\n")
 }
 
-func (e *MultiError) AddErrors(errs ...error) *MultiError {
+func (e *multierror) AddErrors(errs ...error) MultiError {
 	if e != nil {
 		for _, err := range errs {
 			if err != nil {
-				e.errs = append(e.errs, err)
+				*e = append(*e, err)
 			}
 		}
 	}
 	return e
 }
 
-func (e *MultiError) IsNil() bool {
-	return e == nil || len(e.errs) == 0
+func (e *multierror) IsNil() bool {
+	return e == nil || len(*e) == 0
 }
 
-func (e *MultiError) Err() error {
+func (e *multierror) Err() error {
 	if e.IsNil() {
 		return nil
 	}
