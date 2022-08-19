@@ -57,11 +57,9 @@ func (e *multierror) String() string {
 }
 
 func (e *multierror) AddErrors(errs ...error) MultiError {
-	if e != nil {
-		for _, err := range errs {
-			if err != nil {
-				*e = append(*e, err)
-			}
+	for _, err := range errs {
+		if err != nil {
+			*e = append(*e, err)
 		}
 	}
 	return e

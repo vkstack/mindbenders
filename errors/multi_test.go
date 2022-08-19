@@ -90,16 +90,20 @@ func Test_multierror_AddErrors(t *testing.T) {
 		args args
 		want MultiError
 	}{
-
 		{
 			name: "test-1",
+			args: args{[]error{e2, e3, e4, e0, e4}},
+			want: &multierror{e1, e2, e3, e0},
+		},
+		{
+			name: "test-2",
 			args: args{[]error{e2, e3, e4, e0, e4}},
 			want: &multierror{e1, e2, e3, e0},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.e = NewMultiError(e1)
+			tt.e = NewMultiError(e4)
 			if got := tt.e.AddErrors(tt.args.errs...); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("multierror.AddErrors() = %v, want %v", got, tt.want)
 			}

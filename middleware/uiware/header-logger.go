@@ -31,7 +31,7 @@ func HeaderLogoption(c *gin.Context, filelds *logrus.Fields) {
 		return
 	}
 	for _, k := range additionalHeaders {
-		if hv := c.GetHeader(k); hv != "" {
+		if hv := c.GetHeader(k); hv != "" && !mandatorilyAllowedHeaders.Contains(k) {
 			(*filelds)[k] = hv
 		}
 	}
