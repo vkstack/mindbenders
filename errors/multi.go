@@ -16,7 +16,7 @@ type multierror []error
 
 func DefaultMultiError() MultiError { return &multierror{} }
 
-func NewMultiError(errs ...error) MultiError {
+func NewMultiError(errs ...error) error {
 	var me multierror
 	me.AddErrors(errs...)
 	if me.IsNil() {
