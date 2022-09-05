@@ -33,7 +33,6 @@ func TestCoRelationId_loadAuth(t *testing.T) {
 func TestNewCorelCtx(t *testing.T) {
 	type args struct {
 		sessionId string
-		app       string
 	}
 	tests := []struct {
 		name string
@@ -44,14 +43,13 @@ func TestNewCorelCtx(t *testing.T) {
 			name: "test-1",
 			args: args{
 				sessionId: "test-session",
-				app:       "test-app",
 			},
 		},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewCorelCtx(tt.args.sessionId, tt.args.app); !reflect.DeepEqual(got, tt.want) {
+			if got := NewCorelCtx(tt.args.sessionId); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewCorelCtx() = %v, want %v", got, tt.want)
 			} else {
 				t.Log(got)

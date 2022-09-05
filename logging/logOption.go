@@ -17,7 +17,7 @@ func accessLogOptionBasic(app string) accessLogOption {
 	return func(c *gin.Context, fields *logrus.Fields) {
 		var corelid corel.CoRelationId
 		c.ShouldBindHeader(&corelid)
-		corelid.OnceMust(c, app)
+		corelid.OnceMust(c)
 		corel.GinSetCoRelID(c, &corelid)
 		c.Writer.Header().Set("request-id", corelid.RequestID)
 		(*fields)["referer"] = c.Request.Referer()
@@ -51,8 +51,8 @@ func AccessLogOptionRequestBody(c *gin.Context, fields *logrus.Fields) {
 
 func AccessLogOptionJWTLogging(c *gin.Context, fields *logrus.Fields) {
 	corelid, _ := corel.GetCorelationId(c)
-	if len(corelid.JWT) > 0 {
-		(*fields)["token"] = corelid.JWT
+	if len(corelid.Auth) > 0 {
+		(*fields)["token"] = corelid.Auth
 	}
 }
 
@@ -65,7 +65,6 @@ func logOptionBasic(ctx context.Context, fields *logrus.Fields) {
 	}
 	(*fields)["requestID"] = coRelationID.RequestID
 	(*fields)["sessionID"] = coRelationID.SessionID
-	(*fields)["hop"] = coRelationID.Hop
 	(*fields)["hostname"] = host
 	if coRelationID.OriginApp != "" {
 		(*fields)["OriginApp"] = coRelationID.OriginApp

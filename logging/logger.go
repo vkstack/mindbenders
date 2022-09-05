@@ -72,7 +72,7 @@ func (dlogger *dlogger) finalizeEssentials() error {
 	return nil
 }
 
-//WriteLogs writes log
+// WriteLogs writes log
 func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string) {
 	if ctx == nil {
 		return
@@ -116,7 +116,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	entry.Log(cb, MessageKey)
 }
 
-//GinLogger returns a gin.HandlerFunc middleware
+// GinLogger returns a gin.HandlerFunc middleware
 func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
