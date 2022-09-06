@@ -87,3 +87,5 @@ func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
 	ctx = context.WithValue(ctx, ctxcorelLocator, corelId)
 	return ctx
 }
+
+// func (corelid *CoRelationId) Logrus(logrus.Fields)

@@ -26,13 +26,13 @@ func AllowCorsHeaders(r *gin.Engine, headers ...string) {
 	r.Use(cors.New(config))
 }
 
-func HeaderLogoption(c *gin.Context, filelds *logrus.Fields) {
-	if filelds == nil || c == nil {
+func HeaderLogoption(c *gin.Context, fields logrus.Fields) {
+	if fields == nil || c == nil {
 		return
 	}
 	for _, k := range additionalHeaders {
 		if hv := c.GetHeader(k); hv != "" && !mandatorilyAllowedHeaders.Contains(k) {
-			(*filelds)[k] = hv
+			fields[k] = hv
 		}
 	}
 }

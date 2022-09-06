@@ -25,7 +25,7 @@ type dlogger struct {
 	loptions []logOption
 }
 
-func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fields) {
+func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields logrus.Fields) {
 	for _, opt := range dlogger.loptions {
 		if opt != nil {
 			func() {
@@ -41,7 +41,7 @@ func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields *logrus.Fi
 	}
 }
 
-func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields *logrus.Fields) {
+func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields logrus.Fields) {
 	defer func() {
 		if r := recover(); r != nil {
 			stack := fmt.Sprintf("%v\n%s", r, debug.Stack())
@@ -80,7 +80,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	if len(dLogger.appId) > 0 {
 		fields["appID"] = dLogger.appId
 	}
-	dLogger.safeRunLogOptions(ctx, &fields)
+	dLogger.safeRunLogOptions(ctx, fields)
 	for idx := range fields {
 		switch x := fields[idx].(type) {
 		case int8, int16, int32, int64, int,
@@ -121,7 +121,7 @@ func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		var fields = logrus.Fields{}
-		dLogger.safeRunAccessLogOptions(c, &fields)
+		dLogger.safeRunAccessLogOptions(c, fields)
 		var level = new(logrus.Level)
 		*level = logrus.InfoLevel
 
