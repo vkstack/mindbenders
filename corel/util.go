@@ -31,7 +31,6 @@ func (corelid *CoRelationId) loadAuth() error {
 		if err != nil {
 			return errors.WrapMessage(err, "JWT decoding failed")
 		}
-		// corelid.User = new(dotJWTinfo)
 		return json.Unmarshal(raw, &corelid.JWT)
 	}
 	return nil
@@ -43,12 +42,15 @@ func (corelid *CoRelationId) encCorelToBase64() {
 }
 
 func decodeBase64ToCorel(raw string, corel *CoRelationId) error {
-	if rawbyte, err := base64.StdEncoding.DecodeString(raw); err != nil {
+	rawbyte, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil {
 		return errors.WrapMessage(err, "base64 to corel struct decoding failed")
-	} else {
-		err := json.Unmarshal(rawbyte, &corel)
+	}
+	if err := json.Unmarshal(rawbyte, &corel); err != nil {
 		return errors.WrapMessage(err, "raw base64 to corel struct unmarshalling failed")
 	}
+	corel.enc = raw
+	return nil
 }
 
 // GetCorelationId ...

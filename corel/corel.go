@@ -3,7 +3,6 @@ package corel
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -18,11 +17,13 @@ type CoRelationId struct {
 	Auth      string `header:"Authorization"`
 	JWT       *jwtinfo
 
-	OriginHost,
-	OriginApp,
 	enc string
 
 	once sync.Once
+}
+
+type jwtinfo struct {
+	SessionID string `json:"sessionID" header:"session_id" validate:"required"`
 }
 
 func (corelid *CoRelationId) init(c context.Context) {
@@ -30,14 +31,14 @@ func (corelid *CoRelationId) init(c context.Context) {
 		if gc, ok := c.(*gin.Context); ok {
 			rawcorel := gc.Request.Header.Get(corelHeaderKey)
 			if len(rawcorel) > 0 {
-				decodeBase64ToCorel(rawcorel, corelid)
+				if err := decodeBase64ToCorel(rawcorel, corelid); err == nil {
+					return
+				}
 			}
 		}
 		if len(corelid.RequestID) == 0 {
 			corelid.loadAuth()
 			corelid.RequestID = xid.New().String()
-			corelid.OriginApp = os.Getenv("APP")
-			corelid.OriginHost, _ = os.Hostname()
 		}
 		if corelid.JWT != nil && corelid.JWT.SessionID != "" {
 			corelid.SessionID = corelid.JWT.SessionID
@@ -56,13 +57,9 @@ func NewCoRelationId(sessionId string) *CoRelationId {
 	return corelid
 }
 
-type jwtinfo struct {
-	SessionID string `json:"sessionID" header:"session_id" validate:"required"`
-}
-
 func (corelid *CoRelationId) NewChild() *CoRelationId {
 	ch := CoRelationId(*corelid)
-	//todo:  define prent - child relationship here
+	//todo:  define parent - child relationship here
 	return &ch
 }
 

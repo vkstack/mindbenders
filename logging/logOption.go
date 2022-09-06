@@ -63,8 +63,4 @@ func logOptionBasic(ctx context.Context, fields *logrus.Fields) {
 	(*fields)["requestID"] = coRelationID.RequestID
 	(*fields)["sessionID"] = coRelationID.SessionID
 	(*fields)["hostname"] = host
-	if coRelationID.OriginApp != "" {
-		(*fields)["OriginApp"] = coRelationID.OriginApp
-		(*fields)["OriginHost"] = coRelationID.OriginHost
-	}
 }
