@@ -53,8 +53,7 @@ func decodeBase64ToCorel(raw string, corel *CoRelationId) error {
 	return nil
 }
 
-// GetCorelationId ...
-func GetCorelationId(ctx context.Context) (corelid *CoRelationId, err error) {
+func corel(ctx context.Context) (corelid *CoRelationId, err error) {
 	if corelid, ok := ctx.Value(ctxcorelLocator).(*CoRelationId); ok {
 		return corelid, nil
 	}
@@ -66,12 +65,17 @@ func GetCorelationId(ctx context.Context) (corelid *CoRelationId, err error) {
 	return nil, errors.New("invalid/missing corelationId")
 }
 
+// GetCorelationId ...
+func GetCorelationId(ctx context.Context) (corelid ICorel, err error) {
+	return corel(ctx)
+}
+
 func AttachCorelToHttp(corelid *CoRelationId, req *http.Request) {
-	req.Header.Set(corelHeaderKey, corelid.NewChild().enc)
+	req.Header.Set(corelHeaderKey, corelid.child().enc)
 }
 
 func AttachCorelToHttpFromCtx(ctx context.Context, req *http.Request) {
-	if corelid, err := GetCorelationId(ctx); err == nil {
+	if corelid, err := corel(ctx); err == nil {
 		AttachCorelToHttp(corelid, req)
 	}
 }

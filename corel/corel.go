@@ -3,10 +3,12 @@ package corel
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
+	"github.com/sirupsen/logrus"
 	"gitlab.com/dotpe/mindbenders/errors"
 )
 
@@ -16,6 +18,9 @@ type CoRelationId struct {
 	SessionID string `json:"sessionID" header:"session_id"`
 	Auth      string `header:"Authorization"`
 	JWT       *jwtinfo
+
+	AppRequestId,
+	RequestSource string
 
 	enc string
 
@@ -36,9 +41,10 @@ func (corelid *CoRelationId) init(c context.Context) {
 				}
 			}
 		}
-		if len(corelid.RequestID) == 0 {
+		if len(corelid.RequestId()) == 0 {
 			corelid.loadAuth()
 			corelid.RequestID = xid.New().String()
+			corelid.AppRequestId = corelid.RequestID
 		}
 		if corelid.JWT != nil && corelid.JWT.SessionID != "" {
 			corelid.SessionID = corelid.JWT.SessionID
@@ -49,6 +55,7 @@ func (corelid *CoRelationId) init(c context.Context) {
 	})
 }
 
+// todo: do we need this
 func NewCoRelationId(sessionId string) *CoRelationId {
 	corelid := &CoRelationId{RequestID: xid.New().String(), SessionID: sessionId}
 	if sessionId == "" {
@@ -57,9 +64,11 @@ func NewCoRelationId(sessionId string) *CoRelationId {
 	return corelid
 }
 
-func (corelid *CoRelationId) NewChild() *CoRelationId {
+func (corelid *CoRelationId) child() *CoRelationId {
 	ch := CoRelationId(*corelid)
-	//todo:  define parent - child relationship here
+	ch.AppRequestId = xid.New().String()
+	ch.RequestSource = os.Getenv("APP") + ":" + corelid.AppRequestId
+	ch.encCorelToBase64()
 	return &ch
 }
 
@@ -77,10 +86,12 @@ func (jwt *jwtinfo) UnmarshalJSON(raw []byte) error {
 	return nil
 }
 
+// This is used when the default context is used to define a new corel
 func NewCorelCtx(sessionId string) context.Context {
 	return NewCorelCtxFromCtx(context.Background(), sessionId)
 }
 
+// This is used to define a new corel on the context
 func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
 	corelId := &CoRelationId{SessionID: sessionId}
 	corelId.init(ctx)
@@ -88,4 +99,24 @@ func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
 	return ctx
 }
 
-// func (corelid *CoRelationId) Logrus(logrus.Fields)
+type ICorel interface {
+	Logrus(f logrus.Fields)
+	SessionId() string
+	RequestId() string
+}
+
+func (corelid *CoRelationId) Logrus(f logrus.Fields) {
+	f["sessionId"] = corelid.SessionID
+	f["requestId"] = corelid.RequestID
+	f["appRequestId"] = corelid.AppRequestId
+	if len(corelid.RequestSource) != 0 {
+		f["requestSource"] = corelid.RequestSource
+	}
+}
+
+func (corelid *CoRelationId) SessionId() string {
+	return corelid.SessionID
+}
+func (corelid *CoRelationId) RequestId() string {
+	return corelid.RequestID
+}
