@@ -99,10 +99,12 @@ func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
 	return ctx
 }
 
-type ICorel interface {
-	Logrus(f logrus.Fields)
-	SessionId() string
-	RequestId() string
+// Any task consumer will call this method only
+func NewCorelCtxFromRequest(ctx context.Context, sessionId, requestId string) context.Context {
+	corelId := &CoRelationId{SessionID: sessionId, RequestID: requestId, AppRequestId: xid.New().String()}
+	corelId.init(ctx)
+	ctx = context.WithValue(ctx, ctxcorelLocator, corelId)
+	return ctx
 }
 
 func (corelid *CoRelationId) Logrus(f logrus.Fields) {

@@ -66,7 +66,7 @@ func corel(ctx context.Context) (corelid *CoRelationId, err error) {
 }
 
 // GetCorelationId ...
-func GetCorelationId(ctx context.Context) (corelid ICorel, err error) {
+func GetCorelationId(ctx context.Context) (corelid *CoRelationId, err error) {
 	return corel(ctx)
 }
 
