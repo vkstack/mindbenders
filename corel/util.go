@@ -61,6 +61,7 @@ func corel(ctx context.Context) (corelid *CoRelationId, err error) {
 		c.ShouldBindHeader(&corelid)
 		corelid.init(c)
 		c.Set(string(ctxcorelLocator), corelid)
+		return corelid, nil
 	}
 	return nil, errors.New("invalid/missing corelationId")
 }
