@@ -47,7 +47,7 @@ func (corelid *CoRelationId) init(c context.Context) {
 			corelid.RequestID = xid.New().String()
 		}
 		if len(corelid.AppRequestId) == 0 {
-			corelid.AppRequestId = corelid.RequestID
+			corelid.AppRequestId = xid.New().String()
 		}
 		if corelid.JWT != nil && corelid.JWT.SessionID != "" {
 			corelid.SessionID = corelid.JWT.SessionID
