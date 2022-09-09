@@ -34,6 +34,7 @@ type jwtinfo struct {
 func (corelid *CoRelationId) init(c context.Context) {
 	corelid.once.Do(func() {
 		if gc, ok := c.(*gin.Context); ok {
+			gc.ShouldBindHeader(&corelid)
 			rawcorel := gc.Request.Header.Get(corelHeaderKey)
 			if len(rawcorel) > 0 {
 				if err := decodeBase64ToCorel(rawcorel, corelid); err == nil {

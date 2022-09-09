@@ -64,7 +64,6 @@ func corel(ctx context.Context) (*CoRelationId, error) {
 			}
 		}
 		var corelid = new(CoRelationId)
-		c.ShouldBindHeader(&corelid)
 		corelid.init(c)
 		if len(corelid.RequestID) > 0 {
 			c.Set(string(ctxcorelLocator), corelid)
@@ -80,6 +79,8 @@ func GetCorelationId(ctx context.Context) (corelid *CoRelationId, err error) {
 }
 
 func AttachCorelToHttp(corelid *CoRelationId, req *http.Request) {
+	req.Header.Set("request_id", corelid.RequestID)
+	req.Header.Set("session_id", corelid.SessionID)
 	req.Header.Set(corelHeaderKey, corelid.child().enc)
 }
 
