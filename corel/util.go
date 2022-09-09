@@ -53,14 +53,22 @@ func decodeBase64ToCorel(raw string, corel *CoRelationId) error {
 	return nil
 }
 
-func corel(ctx context.Context) (corelid *CoRelationId, err error) {
+func corel(ctx context.Context) (*CoRelationId, error) {
 	if corelid, ok := ctx.Value(ctxcorelLocator).(*CoRelationId); ok {
 		return corelid, nil
 	}
 	if c, ok := ctx.(*gin.Context); ok {
+		if v, ok := c.Get(string(ctxcorelLocator)); ok {
+			if corelid, ok := v.(*CoRelationId); ok {
+				return corelid, nil
+			}
+		}
+		var corelid = new(CoRelationId)
 		c.ShouldBindHeader(&corelid)
 		corelid.init(c)
-		c.Set(string(ctxcorelLocator), corelid)
+		if len(corelid.RequestID) > 0 {
+			c.Set(string(ctxcorelLocator), corelid)
+		}
 		return corelid, nil
 	}
 	return nil, errors.New("invalid/missing corelationId")
