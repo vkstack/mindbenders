@@ -20,7 +20,7 @@ func TestEncodeCorel(t *testing.T) {
 		{
 			name: "test-1",
 			args: args{
-				corelId: corelId.child(),
+				corelId: corelId.Child(),
 			},
 		},
 	}

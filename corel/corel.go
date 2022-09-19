@@ -59,10 +59,17 @@ func (corelid *CoRelationId) init(c context.Context) {
 	})
 }
 
-func (corelid *CoRelationId) child() *CoRelationId {
+func (corelid *CoRelationId) Child() *CoRelationId {
 	ch := CoRelationId(*corelid)
 	ch.AppRequestId = xid.New().String()
 	ch.RequestSource = os.Getenv("APP") + ":" + corelid.AppRequestId
+	ch.enc = EncodeCorel(&ch)
+	return &ch
+}
+
+func (corelid *CoRelationId) Sibling() *CoRelationId {
+	ch := CoRelationId(*corelid)
+	ch.AppRequestId = xid.New().String()
 	ch.enc = EncodeCorel(&ch)
 	return &ch
 }

@@ -69,7 +69,7 @@ func GetCorelationId(ctx context.Context) (corelid *CoRelationId, err error) {
 func AttachCorelToHttp(corelid *CoRelationId, req *http.Request) {
 	req.Header.Set("request_id", corelid.RequestId)
 	req.Header.Set("session_id", corelid.SessionId)
-	req.Header.Set(corelHeaderKey, corelid.child().enc)
+	req.Header.Set(corelHeaderKey, corelid.Child().enc)
 }
 
 func AttachCorelToHttpFromCtx(ctx context.Context, req *http.Request) {
