@@ -36,24 +36,10 @@ func (corelid *CoRelationId) loadAuth() error {
 	return nil
 }
 
-func (corelid *CoRelationId) encCorelToBase64() {
-	raw, _ := json.Marshal(corelid)
-	corelid.enc = base64.StdEncoding.EncodeToString(raw)
-}
-
-func decodeBase64ToCorel(raw string, corel *CoRelationId) error {
-	rawbyte, err := base64.StdEncoding.DecodeString(raw)
-	if err != nil {
-		return errors.WrapMessage(err, "base64 to corel struct decoding failed")
-	}
-	if err := json.Unmarshal(rawbyte, &corel); err != nil {
-		return errors.WrapMessage(err, "raw base64 to corel struct unmarshalling failed")
-	}
-	corel.enc = raw
-	return nil
-}
-
 func corel(ctx context.Context) (*CoRelationId, error) {
+	if ctx == nil {
+		return nil, errors.New("nil context")
+	}
 	if corelid, ok := ctx.Value(ctxcorelLocator).(*CoRelationId); ok {
 		return corelid, nil
 	}
@@ -65,7 +51,7 @@ func corel(ctx context.Context) (*CoRelationId, error) {
 		}
 		var corelid = new(CoRelationId)
 		corelid.init(c)
-		if len(corelid.RequestID) > 0 {
+		if len(corelid.RequestId) > 0 {
 			c.Set(string(ctxcorelLocator), corelid)
 			// this will help the other middleware to copy request headers
 			c.Header(corelHeaderKey, corelid.enc)
@@ -81,8 +67,8 @@ func GetCorelationId(ctx context.Context) (corelid *CoRelationId, err error) {
 }
 
 func AttachCorelToHttp(corelid *CoRelationId, req *http.Request) {
-	req.Header.Set("request_id", corelid.RequestID)
-	req.Header.Set("session_id", corelid.SessionID)
+	req.Header.Set("request_id", corelid.RequestId)
+	req.Header.Set("session_id", corelid.SessionId)
 	req.Header.Set(corelHeaderKey, corelid.child().enc)
 }
 
@@ -90,4 +76,31 @@ func AttachCorelToHttpFromCtx(ctx context.Context, req *http.Request) {
 	if corelid, err := corel(ctx); err == nil {
 		AttachCorelToHttp(corelid, req)
 	}
+}
+
+func EncodeCorel(corelId *CoRelationId) string {
+	raw, _ := json.Marshal(corelId)
+	return base64.StdEncoding.EncodeToString(raw)
+}
+
+func DecodeCorel(str string, dst interface{}) error {
+	rawbyte, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return errors.WrapMessage(err, "base64 to corel struct decoding failed")
+	}
+	if err := json.Unmarshal(rawbyte, &dst); err != nil {
+		return errors.WrapMessage(err, "raw base64 to corel struct unmarshalling failed")
+	}
+	return nil
+}
+
+func DecodeCorelationId(encoded string) *CoRelationId {
+	var corel CoRelationId
+	if err := DecodeCorel(encoded, &corel); err != nil {
+		corelid, _ := GetCorelationId(NewCorelCtx(""))
+		return corelid
+	}
+	corel.enc = encoded
+	corel.once.Do(func() {})
+	return &corel
 }

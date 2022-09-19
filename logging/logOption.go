@@ -16,7 +16,7 @@ type accessLogOption func(c *gin.Context, fields logrus.Fields)
 func accessLogOptionBasic(app string) accessLogOption {
 	return func(c *gin.Context, fields logrus.Fields) {
 		corelid, _ := corel.GetCorelationId(c)
-		c.Writer.Header().Set("request-id", corelid.RequestId())
+		c.Writer.Header().Set("request-id", corelid.GetRequestId())
 		fields["referer"] = c.Request.Referer()
 		fields["clientIP"] = c.ClientIP()
 		fields["host"] = c.Request.Host

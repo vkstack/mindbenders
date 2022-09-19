@@ -14,8 +14,8 @@ import (
 
 // CoRelationId correlationData
 type CoRelationId struct {
-	RequestID string `json:"requestID" header:"request_id"`
-	SessionID string `json:"sessionID" header:"session_id"`
+	RequestId string `json:"requestId" header:"request_id"`
+	SessionId string `json:"sessionId" header:"session_id"`
 	Auth      string `header:"Authorization"`
 	JWT       *jwtinfo
 
@@ -28,7 +28,7 @@ type CoRelationId struct {
 }
 
 type jwtinfo struct {
-	SessionID string `json:"sessionID" header:"session_id" validate:"required"`
+	SessionId string `json:"sessionID" header:"session_id" validate:"required"`
 }
 
 func (corelid *CoRelationId) init(c context.Context) {
@@ -37,52 +37,44 @@ func (corelid *CoRelationId) init(c context.Context) {
 			gc.ShouldBindHeader(&corelid)
 			rawcorel := gc.Request.Header.Get(corelHeaderKey)
 			if len(rawcorel) > 0 {
-				if err := decodeBase64ToCorel(rawcorel, corelid); err == nil {
+				if err := DecodeCorel(rawcorel, corelid); err == nil {
 					return
 				}
+				corelid.enc = rawcorel
 			}
 		}
-		if len(corelid.RequestId()) == 0 {
+		if len(corelid.RequestId) == 0 {
 			corelid.loadAuth()
-			corelid.RequestID = xid.New().String()
+			corelid.RequestId = xid.New().String()
 		}
 		if len(corelid.AppRequestId) == 0 {
 			corelid.AppRequestId = xid.New().String()
 		}
-		if corelid.JWT != nil && corelid.JWT.SessionID != "" {
-			corelid.SessionID = corelid.JWT.SessionID
-		} else if len(corelid.SessionID) == 0 {
-			corelid.SessionID = "null-" + corelid.RequestID
+		if corelid.JWT != nil && corelid.JWT.SessionId != "" {
+			corelid.SessionId = corelid.JWT.SessionId
+		} else if len(corelid.SessionId) == 0 {
+			corelid.SessionId = "null-" + corelid.RequestId
 		}
-		corelid.encCorelToBase64()
+		corelid.enc = EncodeCorel(corelid)
 	})
-}
-
-// todo: do we need this
-func NewCoRelationId(sessionId string) *CoRelationId {
-	corelid := &CoRelationId{RequestID: xid.New().String(), SessionID: sessionId}
-	if sessionId == "" {
-		corelid.SessionID = corelid.RequestID
-	}
-	return corelid
 }
 
 func (corelid *CoRelationId) child() *CoRelationId {
 	ch := CoRelationId(*corelid)
 	ch.AppRequestId = xid.New().String()
 	ch.RequestSource = os.Getenv("APP") + ":" + corelid.AppRequestId
-	ch.encCorelToBase64()
+	ch.enc = EncodeCorel(&ch)
 	return &ch
 }
 
 func (jwt *jwtinfo) UnmarshalJSON(raw []byte) error {
 	var x struct {
-		SessionID string `json:"sessionID"`
+		SessionId string `json:"sessionID"`
 	}
 	if err := json.Unmarshal(raw, &x); err != nil {
 		return err
 	}
-	if x.SessionID == "" {
+	if x.SessionId == "" {
 		return errors.New("invalid sessionId")
 	}
 	*jwt = jwtinfo(x)
@@ -96,7 +88,7 @@ func NewCorelCtx(sessionId string) context.Context {
 
 // This is used to define a new corel on the context
 func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
-	corelId := &CoRelationId{SessionID: sessionId}
+	corelId := &CoRelationId{SessionId: sessionId}
 	corelId.init(ctx)
 	ctx = context.WithValue(ctx, ctxcorelLocator, corelId)
 	return ctx
@@ -104,24 +96,25 @@ func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
 
 // Any task consumer will call this method only
 func NewCorelCtxFromRequest(ctx context.Context, sessionId, requestId string) context.Context {
-	corelId := &CoRelationId{SessionID: sessionId, RequestID: requestId, AppRequestId: xid.New().String()}
+	corelId := &CoRelationId{SessionId: sessionId, RequestId: requestId, AppRequestId: xid.New().String()}
 	corelId.init(ctx)
 	ctx = context.WithValue(ctx, ctxcorelLocator, corelId)
 	return ctx
 }
 
 func (corelid *CoRelationId) Logrus(f logrus.Fields) {
-	f["sessionId"] = corelid.SessionID
-	f["requestId"] = corelid.RequestID
+	f["sessionId"] = corelid.SessionId
+	f["requestId"] = corelid.RequestId
 	f["appRequestId"] = corelid.AppRequestId
 	if len(corelid.RequestSource) != 0 {
 		f["requestSource"] = corelid.RequestSource
 	}
 }
 
-func (corelid *CoRelationId) SessionId() string {
-	return corelid.SessionID
+func (corelid *CoRelationId) GetSessionId() string {
+	return corelid.SessionId
 }
-func (corelid *CoRelationId) RequestId() string {
-	return corelid.RequestID
+
+func (corelid *CoRelationId) GetRequestId() string {
+	return corelid.RequestId
 }
