@@ -93,6 +93,10 @@ func NewCorelCtx(sessionId string) context.Context {
 	return NewCorelCtxFromCtx(context.Background(), sessionId)
 }
 
+func NewCorelCtxFromCorel(corelid *CoRelationId) context.Context {
+	return context.WithValue(context.Background(), ctxcorelLocator, corelid)
+}
+
 // This is used to define a new corel on the context
 func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
 	corelId := &CoRelationId{SessionId: sessionId}
