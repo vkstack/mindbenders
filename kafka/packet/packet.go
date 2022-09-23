@@ -3,11 +3,13 @@ package packet
 import (
 	"context"
 	"encoding/json"
+	"reflect"
 
 	"gitlab.com/dotpe/mindbenders/corel"
 )
 
 type Packet interface {
+	Bytes() []byte
 	Ctx() context.Context
 	CorelId() *corel.CoRelationId
 }
@@ -28,6 +30,12 @@ func (p *packet) CorelId() *corel.CoRelationId {
 	return p.corelid
 }
 
+func (p *packet) Bytes() []byte {
+	raw, _ := json.Marshal(p)
+	return raw
+}
+
+// consumer side of the app logic will use this constructor
 func NewPacket(raw []byte, dst interface{}) (Packet, error) {
 	p := packet{
 		Payload: dst,
@@ -42,4 +50,23 @@ func NewPacket(raw []byte, dst interface{}) (Packet, error) {
 
 func NewPacketFromStr(raw string, dst interface{}) (Packet, error) {
 	return NewPacket([]byte(raw), dst)
+}
+
+// producer side of the app logic will use this constructor
+func NewPacketFromEntity(ctx context.Context, entity interface{}) Packet {
+	corelid, err := corel.GetCorelationId(ctx)
+	if err != nil {
+		//this will not happen mostly
+		ctx = corel.NewCorelCtx("anonym:production-" + reflect.TypeOf(entity).Name())
+		corelid, _ = corel.GetCorelationId(ctx)
+	} else {
+		corelid = corelid.Child()
+	}
+	p := packet{
+		Payload:     entity,
+		ctx:         ctx,
+		corelid:     corelid,
+		Correlation: corel.EncodeCorel(corelid),
+	}
+	return &p
 }
