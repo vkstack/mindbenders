@@ -27,6 +27,8 @@ type CoRelationId struct {
 	once sync.Once
 }
 
+func (corelid *CoRelationId) Enc() string { return corelid.enc }
+
 type jwtinfo struct {
 	SessionId string `json:"sessionID" header:"session_id" validate:"required"`
 }
@@ -35,7 +37,7 @@ func (corelid *CoRelationId) init(c context.Context) {
 	corelid.once.Do(func() {
 		if gc, ok := c.(*gin.Context); ok {
 			gc.ShouldBindHeader(&corelid)
-			rawcorel := gc.Request.Header.Get(corelHeaderKey)
+			rawcorel := gc.Request.Header.Get(string(CtxCorelLocator))
 			if len(rawcorel) > 0 {
 				if err := DecodeCorel(rawcorel, corelid); err == nil {
 					return
@@ -94,14 +96,14 @@ func NewCorelCtx(sessionId string) context.Context {
 }
 
 func NewCorelCtxFromCorel(corelid *CoRelationId) context.Context {
-	return context.WithValue(context.Background(), ctxcorelLocator, corelid)
+	return context.WithValue(context.Background(), CtxCorelLocator, corelid)
 }
 
 // This is used to define a new corel on the context
 func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
 	corelId := &CoRelationId{SessionId: sessionId}
 	corelId.init(ctx)
-	ctx = context.WithValue(ctx, ctxcorelLocator, corelId)
+	ctx = context.WithValue(ctx, CtxCorelLocator, corelId)
 	return ctx
 }
 
@@ -109,7 +111,7 @@ func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
 func NewCorelCtxFromRequest(ctx context.Context, sessionId, requestId string) context.Context {
 	corelId := &CoRelationId{SessionId: sessionId, RequestId: requestId, AppRequestId: xid.New().String()}
 	corelId.init(ctx)
-	ctx = context.WithValue(ctx, ctxcorelLocator, corelId)
+	ctx = context.WithValue(ctx, CtxCorelLocator, corelId)
 	return ctx
 }
 

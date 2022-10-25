@@ -17,8 +17,7 @@ import (
 type corelstr string
 
 var (
-	ctxcorelLocator corelstr = "corelid-local"
-	corelHeaderKey           = "corel"
+	CtxCorelLocator corelstr = "corel"
 )
 
 func (corelid *CoRelationId) loadAuth() error {
@@ -40,11 +39,11 @@ func corel(ctx context.Context) (*CoRelationId, error) {
 	if ctx == nil {
 		return nil, errors.New("nil context")
 	}
-	if corelid, ok := ctx.Value(ctxcorelLocator).(*CoRelationId); ok {
+	if corelid, ok := ctx.Value(CtxCorelLocator).(*CoRelationId); ok {
 		return corelid, nil
 	}
 	if c, ok := ctx.(*gin.Context); ok {
-		if v, ok := c.Get(string(ctxcorelLocator)); ok {
+		if v, ok := c.Get(string(CtxCorelLocator)); ok {
 			if corelid, ok := v.(*CoRelationId); ok {
 				return corelid, nil
 			}
@@ -52,9 +51,9 @@ func corel(ctx context.Context) (*CoRelationId, error) {
 		var corelid = new(CoRelationId)
 		corelid.init(c)
 		if len(corelid.RequestId) > 0 {
-			c.Set(string(ctxcorelLocator), corelid)
+			c.Set(string(CtxCorelLocator), corelid)
 			// this will help the other middleware to copy request headers
-			c.Header(corelHeaderKey, corelid.enc)
+			c.Header(string(CtxCorelLocator), corelid.enc)
 		}
 		return corelid, nil
 	}
@@ -69,7 +68,7 @@ func GetCorelationId(ctx context.Context) (corelid *CoRelationId, err error) {
 func AttachCorelToHttp(corelid *CoRelationId, req *http.Request) {
 	req.Header.Set("request_id", corelid.RequestId)
 	req.Header.Set("session_id", corelid.SessionId)
-	req.Header.Set(corelHeaderKey, corelid.Child().enc)
+	req.Header.Set(string(CtxCorelLocator), corelid.Child().enc)
 }
 
 func AttachCorelToHttpFromCtx(ctx context.Context, req *http.Request) {
