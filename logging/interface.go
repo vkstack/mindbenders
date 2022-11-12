@@ -1,4 +1,4 @@
-package interfaces
+package logging
 
 import (
 	"context"
@@ -11,7 +11,7 @@ type ILogWriter interface {
 	WriteLogs(context.Context, logrus.Fields, logrus.Level, string)
 }
 
-//ILogger ...
+// ILogger ...
 type IDotpeLogger interface {
 	ILogWriter
 	GinLogger() gin.HandlerFunc

@@ -9,7 +9,7 @@ import (
 	"runtime"
 
 	"github.com/sirupsen/logrus"
-	"gitlab.com/dotpe/mindbenders/interfaces"
+	"gitlab.com/dotpe/mindbenders/logging"
 )
 
 const (
@@ -33,7 +33,7 @@ const (
 	ErrDBTxn = "db_err_txn"
 )
 
-//Option ...
+// Option ...
 type Option struct {
 	Host,
 	Port,
@@ -58,7 +58,7 @@ func (ops *Option) setdefaults() {
 	}
 }
 
-//Init ...
+// Init ...
 func Init(option Option) (*sql.DB, error) {
 	connectionstr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", option.User, option.Pass, option.Host, option.Port, option.DB)
 	if option.User == "" || option.Pass == "" || option.Host == "" || option.Port == "" || option.DB == "" {
@@ -76,8 +76,8 @@ func Init(option Option) (*sql.DB, error) {
 	return Client, nil
 }
 
-//WriteDBError ...
-func WriteDBError(ctx context.Context, logger interfaces.IDotpeLogger, err error, db, etype string) {
+// WriteDBError ...
+func WriteDBError(ctx context.Context, logger logging.IDotpeLogger, err error, db, etype string) {
 	pc, file, line, _ := runtime.Caller(1)
 	funcname := runtime.FuncForPC(pc).Name()
 	logger.WriteLogs(ctx, logrus.Fields{

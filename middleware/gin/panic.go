@@ -10,11 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/dotpe/mindbenders/interfaces"
+	"gitlab.com/dotpe/mindbenders/logging"
 )
 
-//Recovery returns a gin.HandlerFunc having recovery solution
-func Recovery(l interfaces.ILogWriter) gin.HandlerFunc {
+// Recovery returns a gin.HandlerFunc having recovery solution
+func Recovery(l logging.ILogWriter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
