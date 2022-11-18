@@ -5,27 +5,30 @@ import (
 	"sync"
 )
 
-var lock sync.Mutex
-var logger IDotpeLogger
+var loggeronce sync.Once
+var (
+	defaultLogger = &emptyLogger{}
+
+	logger IDotpeLogger = defaultLogger
+)
 var host, _ = os.Hostname()
 
-// InitLogger sets up the logger object with LoeggerOptions provided.
+// InitLogger sets up the logger object with LoggerOptions provided.
 // It returns reference logger object and error
-func Init(opts ...Option) (IDotpeLogger, error) {
-	if logger == nil {
-		lock.Lock()
-		defer lock.Unlock()
-		if logger == nil {
-			var dlogger = new(dlogger)
-			for _, opt := range opts {
-				opt(dlogger)
-			}
-			err := dlogger.finalizeEssentials()
-			if err != nil {
-				return nil, err
-			}
-			logger = dlogger
+func MustGet(opts ...Option) IDotpeLogger {
+	loggeronce.Do(func() {
+		var loggr = new(dlogger)
+		for _, opt := range opts {
+			opt(loggr)
 		}
-	}
-	return logger, nil
+		if err := loggr.finalizeEssentials(); err != nil {
+			panic("unable to initialize logger")
+		}
+		logger = loggr
+	})
+	return logger
 }
+
+func DefaultLogWriter() ILogWriter { return defaultLogger }
+
+func LogWriter() ILogWriter { return logger }

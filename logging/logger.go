@@ -117,7 +117,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 }
 
 // GinLogger returns a gin.HandlerFunc middleware
-func (dLogger *dlogger) GinLogger() gin.HandlerFunc {
+func (dLogger *dlogger) Gin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		var fields = logrus.Fields{}

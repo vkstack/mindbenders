@@ -14,5 +14,5 @@ type ILogWriter interface {
 // ILogger ...
 type IDotpeLogger interface {
 	ILogWriter
-	GinLogger() gin.HandlerFunc
+	Gin() gin.HandlerFunc
 }
