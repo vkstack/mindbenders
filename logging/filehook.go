@@ -30,11 +30,19 @@ func NewFileHookContainer(app string) IHookContainer {
 	}
 }
 
+func (flc *FileLogConfig) MustGetHook() logrus.Hook {
+	hook, err := GetJSONFileHook(flc.logdir, fmt.Sprintf("app-%s.log", flc.app))
+	if err != nil {
+		log.Fatalf("unable to get file hook:%v\n", err)
+	}
+	return hook
+}
+
 func (flc *FileLogConfig) GetHook() (logrus.Hook, error) {
 	return GetJSONFileHook(flc.logdir, fmt.Sprintf("app-%s.log", flc.app))
 }
 
-//absolute filename
+// absolute filename
 // /home/bob/work/app.log
 func GetJSONFileHook(dir, file string) (logrus.Hook, error) {
 	formatter := &logrus.JSONFormatter{

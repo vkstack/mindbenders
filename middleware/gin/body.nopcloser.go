@@ -9,7 +9,8 @@ import (
 
 func BodyReaderNop(c *gin.Context) {
 	if c.Request.Body != nil {
-		raw, _ := io.ReadAll(c.Request.Body)
-		c.Request.Body = io.NopCloser(bytes.NewBuffer(raw))
+		buff := new(bytes.Buffer)
+		buff.ReadFrom(c.Request.Body)
+		c.Request.Body = io.NopCloser(buff)
 	}
 }
