@@ -6,8 +6,6 @@ import (
 
 	"gitlab.com/dotpe/mindbenders/errors"
 
-	"gitlab.com/dotpe/mindbenders/bootconfig/config"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 
@@ -21,7 +19,7 @@ type secretManager struct {
 }
 
 // GetSecretManager ..
-func GetSecretManager(env string) config.IConfig {
+func GetSecretManager(env string) IConfig {
 	//can  have some preprocessing logic
 	return &secretManager{
 		ENV: env,
@@ -32,7 +30,7 @@ func (cfgmgr *secretManager) getSearchKey(key string) string {
 	return cfgmgr.ENV + "/" + strings.Trim(key, "/")
 }
 
-//Create a Secrets Manager client
+// Create a Secrets Manager client
 func (cfgmgr *secretManager) get(key string) ([]byte, error) {
 	newSession, _ := session.NewSession()
 	svc := secretsmanager.New(newSession, aws.NewConfig().WithRegion(awsRegion))

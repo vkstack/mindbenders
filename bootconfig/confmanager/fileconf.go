@@ -7,19 +7,17 @@ import (
 	"path"
 
 	"gitlab.com/dotpe/mindbenders/errors"
-
-	"gitlab.com/dotpe/mindbenders/bootconfig/config"
 )
 
 const devconfig = "config.local.json"
 
-//FileConfig It is for dev configs only.
-//For staging & prod SecretManager will be used.
+// FileConfig It is for dev configs only.
+// For staging & prod SecretManager will be used.
 type fileConfig struct {
 	keyVal map[string]interface{}
 }
 
-func GetFileConfigManager() (config.IConfig, error) {
+func GetFileConfigManager() (IConfig, error) {
 	cfgMgr := fileConfig{}
 	localConfig, err := os.Open(path.Join(os.Getenv("CONFIGDIR"), devconfig))
 	if err != nil {
