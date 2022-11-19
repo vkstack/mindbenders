@@ -36,6 +36,14 @@ func (conf *elasticConfig) GetHook() (logrus.Hook, error) {
 	return GetElasticHook(conf.app, conf.client, conf.accessKey, conf.secretKey)
 }
 
+func (conf *elasticConfig) MustGetHook() logrus.Hook {
+	hook, err := GetElasticHook(conf.app, conf.client, conf.accessKey, conf.secretKey)
+	if err != nil {
+		log.Fatalf("unable to get elastic hook:%v\n", err)
+	}
+	return hook
+}
+
 func GetElasticHook(app, url, accessKey, secretKey string) (logrus.Hook, error) {
 	if url == "" {
 		return nil, errors.New("missing -client-url KIBANA")
