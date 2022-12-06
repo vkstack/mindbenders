@@ -60,3 +60,26 @@ func WithLogOptions(opts ...logOption) Option {
 		dlogger.loptions = append(dlogger.loptions, opts...)
 	}
 }
+
+func WithLevelInfo(level string) Option {
+	return func(dlogger *dlogger) {
+		switch level {
+		case logrus.TraceLevel.String():
+			dlogger.logger.SetLevel(logrus.TraceLevel)
+		case logrus.DebugLevel.String():
+			dlogger.logger.SetLevel(logrus.DebugLevel)
+		case logrus.InfoLevel.String():
+			dlogger.logger.SetLevel(logrus.InfoLevel)
+		case logrus.WarnLevel.String():
+			dlogger.logger.SetLevel(logrus.WarnLevel)
+		case logrus.ErrorLevel.String():
+			dlogger.logger.SetLevel(logrus.ErrorLevel)
+		case logrus.FatalLevel.String():
+			dlogger.logger.SetLevel(logrus.FatalLevel)
+		case logrus.PanicLevel.String():
+			dlogger.logger.SetLevel(logrus.PanicLevel)
+		default:
+			dlogger.logger.SetLevel(logrus.InfoLevel)
+		}
+	}
+}
