@@ -19,6 +19,9 @@ func HttpCorelLoader(ctx context.Context, header http.Header) {
 }
 
 func HttpCorelUnLoader(ctx context.Context, header http.Header) context.Context {
+	if len(header.Get(string(CtxCorelLocator))) == 0 {
+		return ctx
+	}
 	corelid := DecodeCorelationId(header.Get(string(CtxCorelLocator)))
 	if len(corelid.SessionId) == 0 {
 		return ctx
