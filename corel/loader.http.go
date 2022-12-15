@@ -3,6 +3,7 @@ package corel
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,10 @@ func HttpCorelLoader(ctx context.Context, header http.Header) {
 
 func HttpCorelUnLoader(ctx context.Context, header http.Header) context.Context {
 	corelid := DecodeCorelationId(header.Get(string(CtxCorelLocator)))
+	corelid1, _ := corel(ctx)
+	if !strings.HasPrefix(corelid1.SessionId, "null") {
+		corelid = corelid1
+	}
 	if len(corelid.SessionId) == 0 {
 		return ctx
 	}
