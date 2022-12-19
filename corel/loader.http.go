@@ -3,7 +3,6 @@ package corel
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,14 +18,16 @@ func HttpCorelLoader(ctx context.Context, header http.Header) {
 	}
 }
 
+/*
+*The below Unloader will work with gin.Context only.
+ */
 func HttpCorelUnLoader(ctx context.Context, header http.Header) context.Context {
-	corelid := DecodeCorelationId(header.Get(string(CtxCorelLocator)))
-	corelid1, _ := corel(ctx)
-	if !strings.HasPrefix(corelid1.SessionId, "null") {
-		corelid = corelid1
-	}
-	if len(corelid.SessionId) == 0 {
-		return ctx
+	enc := header.Get(string(CtxCorelLocator))
+	var corelid *CoRelationId
+	if len(enc) == 0 {
+		corelid, _ = corel(ctx)
+	} else {
+		corelid = DecodeCorelationId(enc)
 	}
 	if gc, ok := ctx.(*gin.Context); ok {
 		gc.Set(string(CtxCorelLocator), corelid)
