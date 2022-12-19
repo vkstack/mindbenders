@@ -3,6 +3,8 @@ package logging
 import (
 	"os"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 var loggeronce sync.Once
@@ -25,6 +27,11 @@ func MustGet(opts ...Option) IDotpeLogger {
 			panic("unable to initialize logger")
 		}
 		logger = loggr
+		level, err := logrus.ParseLevel(os.Getenv("LOGLEVEL"))
+		if err != nil {
+			level = logrus.InfoLevel
+		}
+		loggr.logger.SetLevel(level)
 	})
 	return logger
 }
