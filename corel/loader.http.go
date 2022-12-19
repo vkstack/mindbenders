@@ -18,13 +18,16 @@ func HttpCorelLoader(ctx context.Context, header http.Header) {
 	}
 }
 
+/*
+*The below Unloader will work with gin.Context only.
+ */
 func HttpCorelUnLoader(ctx context.Context, header http.Header) context.Context {
-	if len(header.Get(string(CtxCorelLocator))) == 0 {
-		return ctx
-	}
-	corelid := DecodeCorelationId(header.Get(string(CtxCorelLocator)))
-	if len(corelid.SessionId) == 0 {
-		return ctx
+	enc := header.Get(string(CtxCorelLocator))
+	var corelid *CoRelationId
+	if len(enc) == 0 {
+		corelid, _ = corel(ctx)
+	} else {
+		corelid = DecodeCorelationId(enc)
 	}
 	if gc, ok := ctx.(*gin.Context); ok {
 		gc.Set(string(CtxCorelLocator), corelid)
