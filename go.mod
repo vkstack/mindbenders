@@ -21,6 +21,7 @@ require (
 	github.com/smartystreets/go-aws-auth v0.0.0-20180515143844-0c1422d1fdb9
 	github.com/smartystreets/gunit v1.4.2 // indirect
 	github.com/snowzach/rotatefilehook v0.0.0-20180327172521-2f64f265f58c
+	github.com/streadway/amqp v1.0.0
 	github.com/zsais/go-gin-prometheus v0.1.0
 	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect

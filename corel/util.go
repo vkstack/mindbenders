@@ -16,9 +16,7 @@ import (
 
 type corelstr string
 
-var (
-	CtxCorelLocator corelstr = "corel"
-)
+const CtxCorelLocator corelstr = "corel"
 
 func (corelid *CoRelationId) loadAuth() error {
 	if len(corelid.Auth) > 0 && corelid.Auth != "unknownToken" {
