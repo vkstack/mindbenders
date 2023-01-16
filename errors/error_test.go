@@ -40,7 +40,7 @@ func Test_base_Error(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if e, ok := tt.error.(BaseError); !ok {
+			if e, ok := tt.error.(*BasicError); !ok {
 				return
 			} else {
 				if got := e.Error(); got != tt.want {
@@ -80,7 +80,7 @@ func Test_base_String(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if e, ok := tt.error.(BaseError); !ok {
+			if e, ok := tt.error.(*BasicError); !ok {
 				return
 			} else {
 				var got string

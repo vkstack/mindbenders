@@ -6,12 +6,7 @@ type causer interface {
 	Cause() error
 }
 
-type BaseError interface {
-	error
-	String() string
-	Code() interface{}
-}
-type base struct {
+type BasicError struct {
 	msg   string
 	cause error
 
@@ -31,15 +26,15 @@ type base struct {
 var DefaultSeparator string = "\n"
 
 func New(msg string) error {
-	return &base{msg: msg}
+	return &BasicError{msg: msg}
 }
 
 func NewWithError(err error) error {
-	return &base{msg: err.Error(), cause: err}
+	return &BasicError{msg: err.Error(), cause: err}
 }
 
 func NewWithCode(msg string, code interface{}) error {
-	return &base{msg: msg, code: code}
+	return &BasicError{msg: msg, code: code}
 }
 
 func WrapMessage(err error, msg string) error {
@@ -47,19 +42,19 @@ func WrapMessage(err error, msg string) error {
 		return nil
 	}
 	if e, ok := err.(interface{ Code() interface{} }); ok {
-		return &base{msg: msg, cause: err, code: e.Code()}
+		return &BasicError{msg: msg, cause: err, code: e.Code()}
 	}
-	return &base{msg: msg, cause: err}
+	return &BasicError{msg: msg, cause: err}
 }
 
 func WrapMessageWithCode(err error, msg string, code interface{}) error {
 	if err == nil {
 		return nil
 	}
-	return &base{msg: msg, cause: err, code: code}
+	return &BasicError{msg: msg, cause: err, code: code}
 }
 
-func (e *base) String() string {
+func (e *BasicError) String() string {
 	if e == nil {
 		return ""
 	}
@@ -72,15 +67,15 @@ func (e *base) String() string {
 	return e.msg + DefaultSeparator + e.cause.Error()
 }
 
-func (e *base) Error() string {
+func (e *BasicError) Error() string {
 	return e.msg
 }
 
-func (e *base) Cause() error {
+func (e *BasicError) Cause() error {
 	return e.cause
 }
 
-func (e *base) Code() interface{} {
+func (e *BasicError) Code() interface{} {
 	return e.code
 }
 
