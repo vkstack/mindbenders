@@ -22,17 +22,6 @@ func WithAppInfo(app string) Option {
 	}
 }
 
-func WithHookContainer(hookContainer IHookContainer) Option {
-	if hookContainer == nil {
-		return nil
-	}
-	hook, err := hookContainer.GetHook()
-	if err != nil {
-		return nil
-	}
-	return WithHook(hook)
-}
-
 func WithHook(hook logrus.Hook) Option {
 	if hook == nil {
 		return nil

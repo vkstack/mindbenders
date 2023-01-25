@@ -11,11 +11,7 @@ import (
 	"github.com/snowzach/rotatefilehook"
 )
 
-type FileLogConfig struct {
-	logdir, app string
-}
-
-func NewFileHookContainer(app string) IHookContainer {
+func MustGetHook(app string) logrus.Hook {
 	logdir := os.Getenv("LOGDIR")
 	stat, err := os.Stat(logdir)
 	if err != nil {
@@ -24,22 +20,11 @@ func NewFileHookContainer(app string) IHookContainer {
 	if !stat.IsDir() {
 		log.Fatal("specified path is not a directory: ", logdir)
 	}
-	return &FileLogConfig{
-		logdir: logdir,
-		app:    app,
-	}
-}
-
-func (flc *FileLogConfig) MustGetHook() logrus.Hook {
-	hook, err := GetJSONFileHook(flc.logdir, fmt.Sprintf("app-%s.log", flc.app))
+	hook, err := GetJSONFileHook(logdir, fmt.Sprintf("app-%s.log", app))
 	if err != nil {
 		log.Fatalf("unable to get file hook:%v\n", err)
 	}
 	return hook
-}
-
-func (flc *FileLogConfig) GetHook() (logrus.Hook, error) {
-	return GetJSONFileHook(flc.logdir, fmt.Sprintf("app-%s.log", flc.app))
 }
 
 // absolute filename
