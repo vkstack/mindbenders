@@ -13,12 +13,13 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/google/pprof v0.0.0-20211008130755-947d60d73cc0
-	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
+	github.com/prometheus/client_golang v1.14.0
 	github.com/rs/xid v1.2.1
 	github.com/sirupsen/logrus v1.7.0
-	github.com/snowzach/rotatefilehook v0.0.0-20180327172521-2f64f265f58c
+	github.com/snowzach/rotatefilehook v0.0.0-20220211133110-53752135082d
 	github.com/streadway/amqp v1.0.0
+	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/zsais/go-gin-prometheus v0.1.0
-	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )
