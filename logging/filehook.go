@@ -11,7 +11,7 @@ import (
 	"github.com/snowzach/rotatefilehook"
 )
 
-func MustGetHook(app string) logrus.Hook {
+func MustGetFileHook(app string) logrus.Hook {
 	logdir := os.Getenv("LOGDIR")
 	stat, err := os.Stat(logdir)
 	if err != nil {
