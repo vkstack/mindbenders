@@ -112,6 +112,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 		if ts, ok := t.(time.Time); ok {
 			entry.Time = ts
 		}
+		delete(fields, "time")
 	}
 	entry.Log(cb, MessageKey)
 }
@@ -129,18 +130,18 @@ func (dLogger *dlogger) Gin() gin.HandlerFunc {
 		fields["time"] = start
 		defer dLogger.WriteLogs(c, fields, *level, "access-log")
 
-		fields["statusCode"] = 0
+		fields["request.statusCode"] = 0
 		c.Next()
 		stop := time.Since(start)
-		fields["latency"] = int(math.Ceil(float64(stop.Nanoseconds()) / 1000000.0))
+		fields["request.latency"] = int(math.Ceil(float64(stop.Nanoseconds()) / 1000000.0))
 		code := c.Writer.Status()
 
-		fields["statusCode"] = code
+		fields["request.statusCode"] = code
 		dataLength := c.Writer.Size()
 		if dataLength < 0 {
 			dataLength = 0
 		}
-		fields["dataLength"] = dataLength
+		fields["request.dataLength"] = dataLength
 
 		if len(c.Errors) > 0 {
 			fields["error"] = c.Errors.ByType(gin.ErrorTypePrivate).String()

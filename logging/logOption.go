@@ -17,23 +17,15 @@ func accessLogOptionBasic(app string) accessLogOption {
 	return func(c *gin.Context, fields logrus.Fields) {
 		corelid, _ := corel.GetCorelationId(c)
 		c.Writer.Header().Set("request-id", corelid.GetRequestId())
-		fields["referer"] = c.Request.Referer()
-		fields["clientIP"] = c.ClientIP()
-		fields["host"] = c.Request.Host
-		fields["method"] = c.Request.Method
-		fields["path"] = c.FullPath()
-		fields["uriparams"] = parseGinUriParams(c.Params)
-		fields["queryparams"] = c.Request.URL.Query()
-		fields["userAgent"] = c.Request.UserAgent()
+		fields["request.referer"] = c.Request.Referer()
+		fields["request.clientIP"] = c.ClientIP()
+		fields["request.host"] = c.Request.Host
+		fields["request.method"] = c.Request.Method
+		fields["request.path"] = c.FullPath()
+		fields["request.uripath"] = c.Request.URL.Path
+		fields["request.query"] = c.Request.URL.RawQuery
+		fields["request.ua"] = c.Request.UserAgent()
 	}
-}
-
-func parseGinUriParams(params gin.Params) map[string]interface{} {
-	parsedParams := make(map[string]interface{})
-	for _, p := range params {
-		parsedParams[p.Key] = p.Value
-	}
-	return parsedParams
 }
 
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {

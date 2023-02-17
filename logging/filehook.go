@@ -23,9 +23,9 @@ func MustGetFileHook(app string) logrus.Hook {
 	hn, _ := os.Hostname()
 	var filename string
 	if os.Getenv("ENV") == "dev" {
-		filename = fmt.Sprintf(fmt.Sprintf("app-%s-%s.log", app, hn))
+		filename = fmt.Sprintf("app-%s-%s.log", app, hn)
 	} else {
-		filename = fmt.Sprintf(fmt.Sprintf("app-%s.log", hn))
+		filename = fmt.Sprintf("app-%s.log", hn)
 	}
 	hook, err := GetJSONFileHook(logdir, filename)
 	if err != nil {
@@ -45,10 +45,11 @@ func GetJSONFileHook(dir, file string) (logrus.Hook, error) {
 	}
 	return rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
 		Filename:   path.Join(dir, file),
-		MaxSize:    10,
-		MaxBackups: 10,
-		MaxAge:     10,
+		MaxSize:    50,
+		MaxBackups: 20,
+		MaxAge:     20,
 		Level:      logrus.DebugLevel,
 		Formatter:  formatter,
+		Compress:   true,
 	})
 }
