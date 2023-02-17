@@ -17,14 +17,14 @@ func accessLogOptionBasic(app string) accessLogOption {
 	return func(c *gin.Context, fields logrus.Fields) {
 		corelid, _ := corel.GetCorelationId(c)
 		c.Writer.Header().Set("request-id", corelid.GetRequestId())
-		fields["request.referer"] = c.Request.Referer()
-		fields["request.clientIP"] = c.ClientIP()
-		fields["request.host"] = c.Request.Host
-		fields["request.method"] = c.Request.Method
-		fields["request.path"] = c.FullPath()
-		fields["request.uripath"] = c.Request.URL.Path
-		fields["request.query"] = c.Request.URL.RawQuery
-		fields["request.ua"] = c.Request.UserAgent()
+		fields["request-referer"] = c.Request.Referer()
+		fields["request-clientIP"] = c.ClientIP()
+		fields["request-host"] = c.Request.Host
+		fields["request-method"] = c.Request.Method
+		fields["request-path"] = c.FullPath()
+		fields["request-uripath"] = c.Request.URL.Path
+		fields["request-query"] = c.Request.URL.RawQuery
+		fields["request-ua"] = c.Request.UserAgent()
 	}
 }
 
