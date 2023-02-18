@@ -22,7 +22,9 @@ func accessLogOptionBasic(app string) accessLogOption {
 		fields["request-host"] = c.Request.Host
 		fields["request-method"] = c.Request.Method
 		fields["request-path"] = c.FullPath()
-		fields["request-uripath"] = c.Request.URL.Path
+		if fields["request-path"] != c.Request.URL.Path {
+			fields["request-uripath"] = c.Request.URL.Path
+		}
 		fields["request-query"] = c.Request.URL.RawQuery
 		fields["request-ua"] = c.Request.UserAgent()
 	}
