@@ -5,13 +5,23 @@ import (
 	"log"
 	"os"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/snowzach/rotatefilehook"
 )
 
+var (
+	logMazSize int  = 500
+	compress   bool = false
+)
+
 func MustGetFileHook(app string) logrus.Hook {
+	compress, _ = strconv.ParseBool(os.Getenv("LOGCOMPRESS"))
+	if s, _ := strconv.Atoi(os.Getenv("LOGSIZE")); s >= 100 && s <= 1000 {
+		logMazSize = s
+	}
 	logdir := os.Getenv("LOGDIR")
 	stat, err := os.Stat(logdir)
 	if err != nil {
@@ -34,8 +44,6 @@ func MustGetFileHook(app string) logrus.Hook {
 	return hook
 }
 
-// absolute filename
-// /home/bob/work/app.log
 func GetJSONFileHook(dir, file string) (logrus.Hook, error) {
 	formatter := &logrus.JSONFormatter{
 		DisableTimestamp: false,
@@ -43,13 +51,14 @@ func GetJSONFileHook(dir, file string) (logrus.Hook, error) {
 		FieldMap:         nil,
 		CallerPrettyfier: nil,
 	}
+
 	return rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
 		Filename:   path.Join(dir, file),
-		MaxSize:    1024,
+		MaxSize:    logMazSize,
 		MaxBackups: 20,
 		MaxAge:     20,
 		Level:      logrus.DebugLevel,
 		Formatter:  formatter,
-		Compress:   true,
+		Compress:   compress,
 	})
 }
