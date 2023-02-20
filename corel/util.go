@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"sync"
 
 	"gitlab.com/dotpe/mindbenders/errors"
 
@@ -50,8 +51,11 @@ func corel(ctx context.Context) (*CoRelationId, error) {
 		corelid.init(c)
 		if len(corelid.RequestId) > 0 {
 			c.Set(string(CtxCorelLocator), corelid)
+			var mu sync.RWMutex
+			mu.Lock()
 			// this will help the other middleware to copy request headers
 			c.Header(string(CtxCorelLocator), corelid.enc)
+			mu.Unlock()
 		}
 		return corelid, nil
 	}
