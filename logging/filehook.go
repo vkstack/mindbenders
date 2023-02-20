@@ -45,7 +45,7 @@ func GetJSONFileHook(dir, file string) (logrus.Hook, error) {
 	}
 	return rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
 		Filename:   path.Join(dir, file),
-		MaxSize:    50,
+		MaxSize:    1024,
 		MaxBackups: 20,
 		MaxAge:     20,
 		Level:      logrus.DebugLevel,

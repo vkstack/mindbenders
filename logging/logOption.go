@@ -5,6 +5,8 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"os"
+	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -49,4 +51,7 @@ func logOptionBasic(ctx context.Context, fields logrus.Fields) {
 	}
 	coRelationID.Logrus(fields)
 	fields["hostname"] = host
+	if os.Getenv("LOGLEVEL") == "debug" {
+		fields["debug-stack-trace"] = string(debug.Stack())
+	}
 }
