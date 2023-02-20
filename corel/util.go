@@ -17,6 +17,8 @@ import (
 
 type corelstr string
 
+var mu sync.RWMutex
+
 const CtxCorelLocator corelstr = "corel"
 
 func (corelid *CoRelationId) loadAuth() error {
@@ -51,9 +53,8 @@ func corel(ctx context.Context) (*CoRelationId, error) {
 		corelid.init(c)
 		if len(corelid.RequestId) > 0 {
 			c.Set(string(CtxCorelLocator), corelid)
-			var mu sync.RWMutex
-			mu.Lock()
 			// this will help the other middleware to copy request headers
+			mu.Lock()
 			c.Header(string(CtxCorelLocator), corelid.enc)
 			mu.Unlock()
 		}
