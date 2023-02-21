@@ -50,10 +50,6 @@ func corel(ctx context.Context) (*CoRelationId, error) {
 		corelid.init(c)
 		if len(corelid.RequestId) > 0 {
 			c.Set(string(CtxCorelLocator), corelid)
-			// this will help the other middleware to copy request headers
-			corelid.mu.Lock()
-			c.Header(string(CtxCorelLocator), corelid.enc)
-			corelid.mu.Unlock()
 		}
 		return corelid, nil
 	}
