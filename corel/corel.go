@@ -24,6 +24,7 @@ type CoRelationId struct {
 
 	enc string
 
+	mu   sync.Mutex
 	once sync.Once
 }
 
