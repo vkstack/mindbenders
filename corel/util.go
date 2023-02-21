@@ -17,7 +17,7 @@ import (
 
 type corelstr string
 
-var mu sync.RWMutex
+var mu = &sync.RWMutex{}
 
 const CtxCorelLocator corelstr = "corel"
 
