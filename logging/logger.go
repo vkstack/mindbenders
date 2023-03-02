@@ -105,7 +105,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 		funcname = strings.Trim(funcname, " ")
 		fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	}
-	fields["caller"] = strings.ReplaceAll(fields["caller"].(string), dLogger.wd, "")
+	fields["caller"] = strings.Replace(fields["caller"].(string), dLogger.wd, "", 1)
 	entry := dLogger.logger.WithFields(fields)
 	entry.Time = time.Now()
 	if t, ok := fields["time"]; ok {

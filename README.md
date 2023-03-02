@@ -16,14 +16,12 @@ type IDotpeLogger interface {
 
 In order to initialize one has to have pass the 2 things for sure.
 
-1. `logger.WithAppInfo(os.Getenv("APP"), os.Getenv("CWD"), os.Getenv("ENV"))`, definition is as follows
+1. `logger.WithAppInfo(os.Getenv("APP"))`, definition is as follows
 
     ```go
-    func WithAppInfo(app, env, wd string) Option {
+    func WithAppInfo(app string) Option {
         return func(dlogger *dlogger) {
             dlogger.app = app
-            dlogger.env = env
-            dlogger.wd = wd
         }
     }
     ```
@@ -80,7 +78,7 @@ var hookContainer logger.IHookContainer
 
 // InitLogger ..
 DLogger, err := logger.Init(
-    logger.WithAppInfo(os.Getenv("APP"), os.Getenv("CWD"), os.Getenv("ENV")),
+    logger.WithAppInfo(os.Getenv("APP")),
     logger.WithHookContainer(hookContainer),
     logger.WithAccessLogOptions(
         logger.AccessLogOptionRequestBody,
