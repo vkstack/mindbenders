@@ -64,7 +64,7 @@ func (corelid *CoRelationId) init(c context.Context) {
 func (corelid *CoRelationId) Child() *CoRelationId {
 	ch := CoRelationId(*corelid)
 	ch.AppRequestId = xid.New().String()
-	ch.RequestSource = os.Getenv("APP") + ":" + corelid.AppRequestId
+	ch.RequestSource = os.Getenv("APP") + "-" + corelid.AppRequestId
 	ch.enc = EncodeCorel(&ch)
 	return &ch
 }
