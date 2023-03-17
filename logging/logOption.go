@@ -13,6 +13,10 @@ import (
 	"gitlab.com/dotpe/mindbenders/corel"
 )
 
+const (
+	maxMultiPartSize = 100 << 20
+)
+
 type accessLogOption func(c *gin.Context, fields logrus.Fields)
 
 func accessLogOptionBasic(app string) accessLogOption {
@@ -34,12 +38,21 @@ func accessLogOptionBasic(app string) accessLogOption {
 
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
-	if c.Request.Body != nil {
+	if c.Request.Body != nil && c.Request.Header.Get("Content-Type") == "application/json" {
 		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-		fields["requestBody"] = string(bodyBytes)
-		// Restore the io.ReadCloser to its original state
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		fields["request-body"] = string(bodyBytes)
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
 	}
+	if err := c.Request.ParseMultipartForm(maxMultiPartSize); err != nil {
+		log.Panicln("multipart parse issue : ", err.Error())
+	}
+	var fsize int64
+	for _, files := range c.Request.MultipartForm.File {
+		for _, file := range files {
+			fsize += file.Size
+		}
+	}
+	fields["request-fileLength"] = fsize
 }
 
 type logOption func(ctx context.Context, fields logrus.Fields)
