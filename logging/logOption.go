@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -40,11 +39,6 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
-		if strings.Contains(c.Request.Header.Get("Content-Type"), "application/json") {
-			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-			fields["request-body"] = string(bodyBytes)
-			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
-		}
 		if err := c.Request.ParseMultipartForm(maxMultiPartSize); err != nil {
 			log.Panicln("multipart parse issue : ", err.Error())
 		}
@@ -53,6 +47,11 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 			for _, file := range files {
 				fsize += file.Size
 			}
+		}
+		if fsize == 0 {
+			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+			fields["request-body"] = string(bodyBytes)
+			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
 		}
 		fields["request-fileLength"] = fsize
 	}
