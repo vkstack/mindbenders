@@ -5,9 +5,11 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"runtime/debug"
 
+	"github.com/getlantern/deepcopy"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/dotpe/mindbenders/corel"
@@ -39,12 +41,16 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
-		ctx := c.Copy()
-		if err := ctx.Request.ParseMultipartForm(maxMultiPartSize); err != nil {
+		var req http.Request
+		err := deepcopy.Copy(&req, c.Request)
+		if err != nil {
+			log.Panicln("issue in deep copy : ", err.Error())
+		}
+		if err := req.ParseMultipartForm(maxMultiPartSize); err != nil {
 			log.Panicln("multipart parse issue : ", err.Error())
 		}
 		var fsize int64
-		for _, files := range ctx.Copy().Request.MultipartForm.File {
+		for _, files := range req.MultipartForm.File {
 			for _, file := range files {
 				fsize += file.Size
 			}
