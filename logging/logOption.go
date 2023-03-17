@@ -44,7 +44,7 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 			log.Panicln("multipart parse issue : ", err.Error())
 		}
 		var fsize int64
-		for _, files := range c.Request.MultipartForm.File {
+		for _, files := range c.Copy().Request.MultipartForm.File {
 			for _, file := range files {
 				fsize += file.Size
 			}
