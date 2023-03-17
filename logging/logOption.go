@@ -39,6 +39,7 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
+		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
 		if err := c.Request.ParseMultipartForm(maxMultiPartSize); err != nil {
 			log.Panicln("multipart parse issue : ", err.Error())
 		}
@@ -49,7 +50,6 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 			}
 		}
 		if fsize == 0 {
-			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
 			fields["request-body"] = string(bodyBytes)
 			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
 		}
