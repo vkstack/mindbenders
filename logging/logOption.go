@@ -3,7 +3,7 @@ package logging
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -40,12 +40,11 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
-		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
-		fsize := fileSize(*c.Request)
+		bodyBytes, _ = io.ReadAll(c.Request.Body)
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
+		fsize := fileSize(*c.Request)                             // find file size
 		if fsize == 0 {
 			fields["request-body"] = string(bodyBytes)
-			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
 		}
 		fields["request-fileLength"] = fsize
 	}
