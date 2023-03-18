@@ -3,6 +3,7 @@ package logging
 import (
 	"bytes"
 	"context"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -40,7 +41,9 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
-		fsize := fileSize(c.Request)
+		fsize, b1, b2 := fileSize(*c.Request)
+		c.Request.Body = b1
+		c.Request.Body = b2
 		if fsize == 0 {
 			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
 			fields["request-body"] = string(bodyBytes)
@@ -50,8 +53,9 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	}
 }
 
-func fileSize(req *http.Request) int64 {
+func fileSize(req http.Request) (int64, io.ReadCloser, io.ReadCloser) {
 	body := req.Body
+	body2 := io.ReadCloser(req.Body)
 	if err := req.ParseMultipartForm(maxMultiPartSize); err != nil {
 		log.Panicln("multipart parse issue : ", err.Error())
 	}
@@ -62,7 +66,7 @@ func fileSize(req *http.Request) int64 {
 		}
 	}
 	req.Body = body
-	return fsize
+	return fsize, body, body2
 }
 
 type logOption func(ctx context.Context, fields logrus.Fields)
