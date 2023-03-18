@@ -45,7 +45,6 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 		fsize := fileSize(*c.Request)                                 // find file size
 		if fsize == 0 {
 			fields["request-body"] = string(bodyBytes)
-			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
 		}
 		fields["request-fileLength"] = fsize
 	}
