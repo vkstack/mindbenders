@@ -1,7 +1,7 @@
 package logging
 
 import (
-	"io"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -31,7 +31,7 @@ func WithHook(hook logrus.Hook) Option {
 		dlogger.logger.SetNoLock()
 		dlogger.logger.Hooks.Add(hook)
 		if dlogger.env != "dev" {
-			dlogger.logger.Out = io.Discard
+			dlogger.logger.Out = ioutil.Discard
 		}
 	}
 }
