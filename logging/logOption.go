@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"runtime/debug"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -39,10 +40,13 @@ func accessLogOptionBasic(app string) accessLogOption {
 
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
+	var fsize int64
 	if c.Request.Body != nil {
 		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
-		fsize := fileSize(*c.Request)                                 // find file size
+		if strings.Contains(c.Request.Header.Get("Content-Type"), "multipart/form-data") {
+			fsize = fileSize(*c.Request) // find file size
+		}
 		if fsize == 0 {
 			fields["request-body"] = string(bodyBytes)
 			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
