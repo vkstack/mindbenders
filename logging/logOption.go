@@ -5,12 +5,17 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/dotpe/mindbenders/corel"
+)
+
+const (
+	maxMultiPartSize = 100 << 20
 )
 
 type accessLogOption func(c *gin.Context, fields logrus.Fields)
@@ -36,10 +41,27 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
 		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-		fields["requestBody"] = string(bodyBytes)
-		// Restore the io.ReadCloser to its original state
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
+		fsize := fileSize(*c.Request)                                 // find file size
+		if fsize == 0 {
+			fields["request-body"] = string(bodyBytes)
+			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
+		}
+		fields["request-fileLength"] = fsize
 	}
+}
+
+func fileSize(req http.Request) int64 {
+	if err := req.ParseMultipartForm(maxMultiPartSize); err != nil {
+		log.Panicln("multipart parse issue : ", err.Error())
+	}
+	var fsize int64
+	for _, files := range req.MultipartForm.File {
+		for _, file := range files {
+			fsize += file.Size
+		}
+	}
+	return fsize
 }
 
 type logOption func(ctx context.Context, fields logrus.Fields)
