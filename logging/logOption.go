@@ -5,11 +5,10 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"runtime/debug"
+	"strings"
 
-	"github.com/getlantern/deepcopy"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/dotpe/mindbenders/corel"
@@ -41,26 +40,24 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
-		var req http.Request
-		err := deepcopy.Copy(&req, c.Request)
-		if err != nil {
-			log.Panicln("issue in deep copy : ", err.Error())
-		}
-		if err := req.ParseMultipartForm(maxMultiPartSize); err != nil {
-			log.Panicln("multipart parse issue : ", err.Error())
-		}
-		var fsize int64
-		for _, files := range req.MultipartForm.File {
-			for _, file := range files {
-				fsize += file.Size
+		if strings.Contains(c.Request.Header.Get("Content-Type"), "multipart/form-data") && len(c.Request.PostForm) == 0 {
+			var fsize int64
+			for _, files := range c.Request.MultipartForm.File {
+				for _, file := range files {
+					fsize += file.Size
+				}
 			}
+			if fsize == 0 {
+				bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+				fields["request-body"] = string(bodyBytes)
+				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
+			}
+			fields["request-fileLength"] = fsize
+			return
 		}
-		if fsize == 0 {
-			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-			fields["request-body"] = string(bodyBytes)
-			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
-		}
-		fields["request-fileLength"] = fsize
+		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+		fields["request-body"] = string(bodyBytes)
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
 	}
 }
 
