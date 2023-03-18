@@ -3,6 +3,7 @@ package logging
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -40,21 +41,10 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
 		dcreq := c.Request.Clone(c)
-		if err := dcreq.ParseMultipartForm(maxMultiPartSize); err != nil {
-			log.Panicln("multipart parse issue : ", err.Error())
-		}
-		var fsize int64
-		for _, files := range dcreq.MultipartForm.File {
-			for _, file := range files {
-				fsize += file.Size
-			}
-		}
-		if fsize == 0 {
-			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-			fields["request-body"] = string(bodyBytes)
-			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
-		}
-		fields["request-fileLength"] = fsize
+		fmt.Println("request body: ", dcreq)
+		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+		fields["request-body"] = string(bodyBytes)
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
 	}
 }
 
