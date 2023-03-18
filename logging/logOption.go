@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -40,24 +39,22 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
-		if strings.Contains(c.Request.Header.Get("Content-Type"), "multipart/form-data") && len(c.Request.PostForm) == 0 {
-			var fsize int64
-			for _, files := range c.Request.MultipartForm.File {
-				for _, file := range files {
-					fsize += file.Size
-				}
-			}
-			if fsize == 0 {
-				bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-				fields["request-body"] = string(bodyBytes)
-				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
-			}
-			fields["request-fileLength"] = fsize
-			return
+		dcreq := c.Request.Clone(c)
+		if err := dcreq.ParseMultipartForm(maxMultiPartSize); err != nil {
+			log.Panicln("multipart parse issue : ", err.Error())
 		}
-		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
-		fields["request-body"] = string(bodyBytes)
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
+		var fsize int64
+		for _, files := range dcreq.MultipartForm.File {
+			for _, file := range files {
+				fsize += file.Size
+			}
+		}
+		if fsize == 0 {
+			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+			fields["request-body"] = string(bodyBytes)
+			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
+		}
+		fields["request-fileLength"] = fsize
 	}
 }
 
