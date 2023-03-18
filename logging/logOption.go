@@ -40,7 +40,7 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
-		fsize := fileSize(*c.Request)
+		fsize := fileSize(c.Request)
 		if fsize == 0 {
 			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
 			fields["request-body"] = string(bodyBytes)
@@ -50,7 +50,8 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	}
 }
 
-func fileSize(req http.Request) int64 {
+func fileSize(req *http.Request) int64 {
+	body := req.Body
 	if err := req.ParseMultipartForm(maxMultiPartSize); err != nil {
 		log.Panicln("multipart parse issue : ", err.Error())
 	}
@@ -60,6 +61,7 @@ func fileSize(req http.Request) int64 {
 			fsize += file.Size
 		}
 	}
+	req.Body = body
 	return fsize
 }
 
