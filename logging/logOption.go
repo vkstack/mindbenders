@@ -57,7 +57,8 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 
 func fileSize(req http.Request) int64 {
 	if err := req.ParseMultipartForm(maxMultiPartSize); err != nil {
-		log.Panicln("multipart parse issue : ", err.Error())
+		log.Printf("multipart parse issue : %s\n", err.Error())
+		return 0
 	}
 	var fsize int64
 	for _, files := range req.MultipartForm.File {
