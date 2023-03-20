@@ -52,18 +52,15 @@ func customCollector(p *ginprometheus.Prometheus) gin.HandlerFunc {
 			}
 			if summaryCollector, ok := col.MetricCollector.(prometheus.SummaryVec); ok {
 				summaryCollector.WithLabelValues(lables...).Observe(time.Since(start).Seconds())
-				fmt.Println("collecting summary metrics")
 			}
 
 			switch t := col.MetricCollector.(type) {
 			case *prometheus.SummaryVec:
 				t.WithLabelValues(lables...).Observe(time.Since(start).Seconds())
-				fmt.Println("collecting summary metrics")
 			case *prometheus.HistogramVec:
 				t.WithLabelValues(lables...).Observe(time.Since(start).Seconds())
-				fmt.Println("collecting histo metrics")
 			default:
-				fmt.Println("unknow collector", t)
+				fmt.Println("unknown collector", t)
 			}
 		}
 	}

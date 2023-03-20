@@ -31,7 +31,6 @@ func TestLimiter(t *testing.T) {
 			fmt.Println(int(x.Sub(curr)/time.Second), Eval(context.Background(), rl, lim, "test"))
 		case y := <-t2.C:
 			if y.Sub(curr) >= 2*time.Minute {
-				fmt.Println("About to exit")
 				t1.Stop()
 				t2.Stop()
 			}
