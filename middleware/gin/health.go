@@ -3,6 +3,7 @@ package gin
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"runtime"
 
@@ -16,6 +17,7 @@ func GetHealthHandlerWithDB(db *sql.DB) gin.HandlerFunc {
 			"MySQL":       db.Stats(),
 		}
 		x, _ := json.Marshal(stats)
+		fmt.Println("Health Stats:\t", string(x))
 		c.JSON(http.StatusOK, stats)
 	}
 }
