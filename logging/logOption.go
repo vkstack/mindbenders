@@ -3,6 +3,7 @@ package logging
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -38,6 +39,11 @@ func accessLogOptionBasic(app string) accessLogOption {
 	}
 }
 
+type login struct {
+	UserName string `json:"username"`
+	Password string `json:"password"`
+}
+
 func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	var bodyBytes []byte
 	var fsize int64
@@ -48,6 +54,13 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 			fsize = fileSize(*c.Request) // find file size
 		}
 		if fsize == 0 {
+			var req login
+			err := json.Unmarshal(bodyBytes, &req)
+			if err == nil {
+				req.Password = "************" //REDACTED
+				updatedBytes, _ := json.Marshal(req)
+				bodyBytes = updatedBytes
+			}
 			fields["request-body"] = string(bodyBytes)
 		}
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
