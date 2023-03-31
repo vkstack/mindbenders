@@ -59,9 +59,10 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 			if err == nil {
 				req.Password = "************" //REDACTED
 				updatedBytes, _ := json.Marshal(req)
-				bodyBytes = updatedBytes
+				fields["request-body"] = string(updatedBytes)
+			} else {
+				fields["request-body"] = string(bodyBytes)
 			}
-			fields["request-body"] = string(bodyBytes)
 		}
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes)) // Restore the io.ReadCloser to its original state
 		fields["request-fileLength"] = fsize
