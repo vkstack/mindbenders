@@ -40,7 +40,6 @@ func accessLogOptionBasic(app string) accessLogOption {
 }
 
 type login struct {
-	UserName string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -55,8 +54,8 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 		}
 		if fsize == 0 {
 			var req login
-			err := json.Unmarshal(bodyBytes, &req)
-			if err == nil {
+			json.Unmarshal(bodyBytes, &req)
+			if len(req.Password) > 0 {
 				req.Password = "************" //REDACTED
 				updatedBytes, _ := json.Marshal(req)
 				fields["request-body"] = string(updatedBytes)
