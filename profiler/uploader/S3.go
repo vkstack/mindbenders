@@ -11,24 +11,28 @@ import (
 )
 
 type S3Uploader struct {
-	err    error
 	s3sess *s3.S3
 
 	bucket string
 }
 
-func NewUploaderWithBucket(bucket string) *S3Uploader {
-	uploader := S3Uploader{
+func NewUploaderWithSession(bucket string, sess *session.Session) *S3Uploader {
+	return &S3Uploader{
 		bucket: bucket,
+		s3sess: s3.New(sess),
 	}
-	s, err := session.NewSession(&aws.Config{Region: aws.String(os.Getenv("AWS_REGION"))})
+}
+
+func NewUploaderWithConfig(bucket string, cfg *aws.Config) *S3Uploader {
+	s, err := session.NewSession(cfg)
 	if err != nil {
-		uploader.err = err
 		log.Fatal(err)
-	} else {
-		uploader.s3sess = s3.New(s)
 	}
-	return &uploader
+	return NewUploaderWithSession(bucket, s)
+}
+
+func NewUploaderWithBucket(bucket string) *S3Uploader {
+	return NewUploaderWithConfig(bucket, &aws.Config{Region: aws.String(os.Getenv("AWS_REGION"))})
 }
 
 func (sm *S3Uploader) UploadProfile(target string, rs io.ReadSeeker) error {
