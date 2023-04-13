@@ -87,12 +87,10 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 			uint8, uint16, uint32, uint64, uint,
 			float32, float64,
 			string, bool:
+		case fmt.Stringer:
+			fields[idx] = x.String()
 		case error:
-			if be, ok := x.(fmt.Stringer); ok {
-				fields[idx] = be.String()
-			} else {
-				fields[idx] = x.Error()
-			}
+			fields[idx] = x.Error()
 		default:
 			tmp, _ := json.Marshal(fields[idx])
 			fields[idx] = string(tmp)
