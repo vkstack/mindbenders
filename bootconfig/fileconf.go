@@ -1,4 +1,4 @@
-package confmanager
+package bootconfig
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ type fileConfig struct {
 	keyVal map[string]interface{}
 }
 
-func GetFileConfigManager() (IConfig, error) {
+func GetFileConfigManager() (iConfig, error) {
 	cfgMgr := fileConfig{}
 	localConfig, err := os.Open(path.Join(os.Getenv("CONFIGDIR"), devconfig))
 	if err != nil {

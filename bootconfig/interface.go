@@ -1,6 +1,6 @@
-package confmanager
+package bootconfig
 
-type IConfig interface {
+type iConfig interface {
 	// To retreive *env* specific config
 	// `prod/redis` or `stage1/redis`
 	Get(string) ([]byte, error)
@@ -10,8 +10,8 @@ type IConfig interface {
 	GetGlobal(string) ([]byte, error)
 }
 
-type IConfigExt interface {
-	IConfig
+type ConfigManager interface {
+	iConfig
 	//This panics if no such config found
 	MustGet(string) []byte
 

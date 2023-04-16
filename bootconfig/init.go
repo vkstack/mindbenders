@@ -2,20 +2,18 @@ package bootconfig
 
 import (
 	"log"
-
-	"gitlab.com/dotpe/mindbenders/bootconfig/confmanager"
 )
 
-var ConfManager confmanager.IConfigExt
+var ConfManager ConfigManager
 
 func Init(env string) error {
-	var conf1 confmanager.IConfig
+	var conf1 iConfig
 	var err error
 	if env == "dev" {
-		conf1, err = confmanager.GetFileConfigManager()
+		conf1, err = GetFileConfigManager()
 		log.Println(err)
 	} else {
-		conf1 = confmanager.GetSecretManager(env)
+		conf1 = GetSecretManager(env)
 	}
 	ConfManager = &conf{conf1}
 	return err
@@ -28,11 +26,11 @@ func MustInit(env string) {
 }
 
 type conf struct {
-	confmanager.IConfig
+	iConfig
 }
 
 func (cfgmgr *conf) MustGet(key string) []byte {
-	raw, err := cfgmgr.IConfig.Get(key)
+	raw, err := cfgmgr.iConfig.Get(key)
 	if err != nil {
 		log.Fatalf("unable to read config: %v\b", err)
 	}
@@ -40,7 +38,7 @@ func (cfgmgr *conf) MustGet(key string) []byte {
 }
 
 func (cfgmgr *conf) MustGetGlobal(key string) []byte {
-	raw, err := cfgmgr.IConfig.GetGlobal(key)
+	raw, err := cfgmgr.iConfig.GetGlobal(key)
 	if err != nil {
 		log.Fatalf("unable to read config: %v\b", err)
 	}

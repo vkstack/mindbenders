@@ -1,4 +1,4 @@
-package confmanager
+package bootconfig
 
 import (
 	"encoding/base64"
@@ -19,7 +19,7 @@ type secretManager struct {
 }
 
 // GetSecretManager ..
-func GetSecretManager(env string) IConfig {
+func GetSecretManager(env string) iConfig {
 	//can  have some preprocessing logic
 	return &secretManager{
 		ENV: env,
