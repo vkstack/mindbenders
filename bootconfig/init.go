@@ -32,7 +32,7 @@ type conf struct {
 func (cfgmgr *conf) MustGet(key string) []byte {
 	raw, err := cfgmgr.iConfig.Get(key)
 	if err != nil {
-		log.Fatalf("unable to read config: %v\b", err)
+		log.Fatalf("unable to read config: %s %v\b", key, err)
 	}
 	return raw
 }
@@ -40,7 +40,7 @@ func (cfgmgr *conf) MustGet(key string) []byte {
 func (cfgmgr *conf) MustGetGlobal(key string) []byte {
 	raw, err := cfgmgr.iConfig.GetGlobal(key)
 	if err != nil {
-		log.Fatalf("unable to read config: %v\b", err)
+		log.Fatalf("unable to read config: %s %v\b", key, err)
 	}
 	return raw
 }

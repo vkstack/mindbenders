@@ -43,7 +43,7 @@ func (cfgmgr *secretManager) get(key string) ([]byte, error) {
 	// var secretString *string
 	result, err := svc.GetSecretValue(input)
 	if err != nil {
-		return nil, errors.WrapMessage(err, "couldn't read from secret manager")
+		return nil, errors.WrapMessage(err, "couldn't read from secret manager:\t"+key)
 	}
 	// Decrypts secret using the associated KMS CMK.
 	// Depending on whether the secret is a string or binary, one of these fields will be populated.
@@ -53,17 +53,13 @@ func (cfgmgr *secretManager) get(key string) ([]byte, error) {
 	decodedBinarySecretBytes := make([]byte, base64.StdEncoding.DecodedLen(len(result.SecretBinary)))
 	len, err := base64.StdEncoding.Decode(decodedBinarySecretBytes, result.SecretBinary)
 	if err != nil {
-		return nil, errors.WrapMessage(err, "couldn't decode the read base64")
+		return nil, errors.WrapMessage(err, "couldn't decode the read base64 for:\t"+key)
 	}
 	return decodedBinarySecretBytes[:len], nil
 }
 
 func (cfgmgr *secretManager) Get(key string) ([]byte, error) {
-	raw, err := cfgmgr.get(cfgmgr.getSearchKey(key))
-	if err != nil {
-		return nil, err
-	}
-	return raw, nil
+	return cfgmgr.get(cfgmgr.getSearchKey(key))
 }
 
 // env specifig config

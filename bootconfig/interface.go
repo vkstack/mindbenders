@@ -5,7 +5,7 @@ type iConfig interface {
 	// `prod/redis` or `stage1/redis`
 	Get(string) ([]byte, error)
 
-	// To retreive Global config
+	// To retreive Global config | non env specific
 	// `dynamoDB`
 	GetGlobal(string) ([]byte, error)
 }
