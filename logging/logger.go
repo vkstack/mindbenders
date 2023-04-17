@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,9 +21,10 @@ type dlogger struct {
 	app, appId, env,
 	wd string // Working directory of the application
 
-	logger   *logrus.Logger
-	accopts  []accessLogOption
-	loptions []logOption
+	logger    *logrus.Logger
+	accopts   []accessLogOption
+	loptions  []logOption
+	collector *prometheus.CounterVec
 }
 
 func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields logrus.Fields) {
@@ -96,14 +98,14 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 			fields[idx] = string(tmp)
 		}
 	}
-	if _, ok := fields["caller"]; !ok {
-		pc, file, line, _ := runtime.Caller(1)
-		_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
-		file = strings.Trim(file, " ")
-		funcname = strings.Trim(funcname, " ")
-		fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
-	}
+	pc, file, line, _ := runtime.Caller(1)
+	_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
+	file = strings.Trim(file, " ")
+	funcname = strings.Trim(funcname, " ")
+	fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	fields["caller"] = strings.Replace(fields["caller"].(string), dLogger.wd, "", 1)
+
+	dLogger.addMetrics(cb.String(), MessageKey, fmt.Sprintf("%s:%d", file, line))
 	entry := dLogger.logger.WithFields(fields)
 	entry.Time = time.Now()
 	if t, ok := fields["time"]; ok {
