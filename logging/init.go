@@ -20,7 +20,6 @@ var host, _ = os.Hostname()
 func MustGet(opts ...Option) IDotpeLogger {
 	loggeronce.Do(func() {
 		var loggr = new(dlogger)
-		loggr.initExporter()
 		for _, opt := range opts {
 			opt(loggr)
 		}

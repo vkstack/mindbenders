@@ -21,10 +21,12 @@ type dlogger struct {
 	app, appId, env,
 	wd string // Working directory of the application
 
-	logger    *logrus.Logger
-	accopts   []accessLogOption
-	loptions  []logOption
-	collector *prometheus.CounterVec
+	logger   *logrus.Logger
+	accopts  []accessLogOption
+	loptions []logOption
+
+	metricCollectionLevel logrus.Level
+	collector             *prometheus.CounterVec
 }
 
 func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields logrus.Fields) {
@@ -100,12 +102,11 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	}
 	pc, file, line, _ := runtime.Caller(1)
 	_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
-	file = strings.Trim(file, " ")
+	file = canonicalFile(strings.Trim(file, " "))
 	funcname = strings.Trim(funcname, " ")
 	fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	fields["caller"] = strings.Replace(fields["caller"].(string), dLogger.wd, "", 1)
-
-	dLogger.addMetrics(cb.String(), MessageKey, fmt.Sprintf("%s:%d", file, line))
+	dLogger.addMetrics(cb, MessageKey, fmt.Sprintf("%s:%d", file, line))
 	entry := dLogger.logger.WithFields(fields)
 	entry.Time = time.Now()
 	if t, ok := fields["time"]; ok {
@@ -115,6 +116,12 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 		delete(fields, "time")
 	}
 	entry.Log(cb, MessageKey)
+}
+
+func canonicalFile(file string) string {
+	parts := strings.Split(file, "/")
+	parts = parts[:2*len(parts)/3]
+	return strings.Join(parts, "/")
 }
 
 // GinLogger returns a gin.HandlerFunc middleware
