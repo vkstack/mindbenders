@@ -10,8 +10,8 @@ type BasicError struct {
 	msg   string
 	cause error
 
-	code interface{}
-
+	code    int
+	codeStr string
 	// see the comments in https://stackoverflow.com/questions/40807281/is-there-any-performance-cost-in-using-runtime-caller
 	// stack []uintptr
 }
@@ -25,29 +25,23 @@ type BasicError struct {
 
 var DefaultSeparator string = "\n"
 
-func New(msg string) error {
-	return &BasicError{msg: msg}
-}
+func New(msg string) error { return &BasicError{msg: msg} }
 
-func NewWithError(err error) error {
-	return &BasicError{msg: err.Error(), cause: err}
-}
+func NewWithError(err error) error { return &BasicError{msg: err.Error(), cause: err} }
 
-func NewWithCode(msg string, code interface{}) error {
-	return &BasicError{msg: msg, code: code}
-}
+func NewWithCode(msg string, code int) error { return &BasicError{msg: msg, code: code} }
 
 func WrapMessage(err error, msg string) error {
 	if err == nil {
 		return nil
 	}
-	if e, ok := err.(interface{ Code() interface{} }); ok {
+	if e, ok := err.(interface{ Code() int }); ok {
 		return &BasicError{msg: msg, cause: err, code: e.Code()}
 	}
 	return &BasicError{msg: msg, cause: err}
 }
 
-func WrapMessageWithCode(err error, msg string, code interface{}) error {
+func WrapMessageWithCode(err error, msg string, code int) error {
 	if err == nil {
 		return nil
 	}
@@ -67,17 +61,11 @@ func (e *BasicError) String() string {
 	return e.msg + DefaultSeparator + e.cause.Error()
 }
 
-func (e *BasicError) Error() string {
-	return e.msg
-}
+func (e *BasicError) Error() string { return e.msg }
 
-func (e *BasicError) Cause() error {
-	return e.cause
-}
+func (e *BasicError) Cause() error { return e.cause }
 
-func (e *BasicError) Code() interface{} {
-	return e.code
-}
+func (e *BasicError) Code() interface{} { return e.code }
 
 func Cause(err error) error {
 	if causer, ok := err.(causer); ok && causer.Cause() != nil {
@@ -91,4 +79,11 @@ func UnWrap(err error) error {
 		return causer.Cause()
 	}
 	return err
+}
+
+func Code(err error) int {
+	if coder, ok := err.(interface{ Code() int }); ok {
+		return coder.Code()
+	}
+	return 0
 }
