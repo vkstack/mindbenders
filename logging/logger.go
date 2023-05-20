@@ -102,7 +102,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	}
 	pc, file, line, _ := runtime.Caller(1)
 	_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
-	file = canonicalFile(strings.Trim(file, " "))
+	file = canonicalFile(strings.Trim(file, "/"))
 	funcname = strings.Trim(funcname, " ")
 	fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	fields["caller"] = strings.Replace(fields["caller"].(string), dLogger.wd, "", 1)
@@ -119,9 +119,11 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 }
 
 func canonicalFile(file string) string {
+	file = strings.Trim(file, "/")
 	parts := strings.Split(file, "/")
-	parts = parts[:2*len(parts)/3]
-	return strings.Join(parts, "/")
+	return strings.Join(parts[:len(parts)/3], "/") +
+		"\n" +
+		strings.Join(parts[len(parts)/3:], "/")
 }
 
 // GinLogger returns a gin.HandlerFunc middleware
