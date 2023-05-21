@@ -22,7 +22,7 @@ func WithMetric(level logrus.Level) Option {
 }
 
 func (dlogger *dlogger) addMetrics(level logrus.Level, msg, caller string) {
-	if dlogger.collector != nil && level <= dlogger.metricCollectionLevel {
+	if dlogger.collector != nil && level < dlogger.metricCollectionLevel {
 		parts := strings.Split(caller, "/")
 		parts = parts[len(parts)-3:]
 		caller = strings.Join(parts, "/")
