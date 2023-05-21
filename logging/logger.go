@@ -18,8 +18,9 @@ import (
 )
 
 type dlogger struct {
-	app, appId, env,
-	wd string // Working directory of the application
+	app,
+	appId,
+	env string
 
 	logger   *logrus.Logger
 	accopts  []accessLogOption
@@ -105,7 +106,6 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	file = canonicalFile(strings.Trim(file, "/"))
 	funcname = strings.Trim(funcname, " ")
 	fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
-	fields["caller"] = strings.Replace(fields["caller"].(string), dLogger.wd, "", 1)
 	dLogger.addMetrics(cb, MessageKey, fmt.Sprintf("%s:%d", file, line))
 	entry := dLogger.logger.WithFields(fields)
 	entry.Time = time.Now()
