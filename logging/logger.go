@@ -29,7 +29,7 @@ type dlogger struct {
 	accopts  []accessLogOption
 	loptions []logOption
 
-	metricCollectionLevel logrus.Level
+	metricCollectionLevel Level
 	collector             *prometheus.CounterVec
 }
 
@@ -81,7 +81,7 @@ func (dlogger *dlogger) finalizeEssentials() error {
 }
 
 // WriteLogs writes log
-func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string) {
+func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb Level, MessageKey string) {
 	if ctx == nil {
 		return
 	}
@@ -112,10 +112,10 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 			fields[idx] = string(tmp)
 		}
 	}
-	dLogger.Write(fields, zapcore.Level(cb), MessageKey)
+	dLogger.Write(fields, cb, MessageKey)
 }
 
-func (dLogger *dlogger) Write(fields logrus.Fields, cb zapcore.Level, MessageKey string) {
+func (dLogger *dlogger) Write(fields logrus.Fields, cb Level, MessageKey string) {
 	zlevel := zapcore.Level(cb)
 	zfields := dLogger.enzap(fields)
 	entry := dLogger.zap.Check(zlevel, MessageKey)
@@ -142,12 +142,12 @@ func (dLogger *dlogger) Gin() gin.HandlerFunc {
 		start := time.Now()
 		var fields = logrus.Fields{}
 		dLogger.safeRunAccessLogOptions(c, fields)
-		var level = new(logrus.Level)
-		*level = logrus.InfoLevel
+		var level Level
+		level = InfoLevel
 
 		//deferred request log
 		fields["time"] = start
-		defer dLogger.WriteLogs(c, fields, *level, "access-log")
+		defer dLogger.WriteLogs(c, fields, level, "access-log")
 
 		fields["request-statusCode"] = 0
 		c.Next()
@@ -164,11 +164,11 @@ func (dLogger *dlogger) Gin() gin.HandlerFunc {
 
 		if len(c.Errors) > 0 {
 			fields["error"] = c.Errors.ByType(gin.ErrorTypePrivate).String()
-			*level = logrus.ErrorLevel
+			level = ErrorLevel
 		} else if code > 499 {
-			*level = logrus.ErrorLevel
+			level = ErrorLevel
 		} else if code > 399 {
-			*level = logrus.WarnLevel
+			level = WarnLevel
 		}
 	}
 }

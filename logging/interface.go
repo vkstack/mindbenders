@@ -8,7 +8,7 @@ import (
 )
 
 type ILogWriter interface {
-	WriteLogs(context.Context, logrus.Fields, logrus.Level, string)
+	WriteLogs(context.Context, logrus.Fields, Level, string)
 }
 
 // ILogger ...

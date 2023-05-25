@@ -1,8 +1,11 @@
 package logging
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
 
-type Level int8
+type Level zapcore.Level
 
 const (
 	PanicLevel  Level = Level(zap.PanicLevel)
@@ -13,3 +16,5 @@ const (
 	DebugLevel  Level = Level(zap.DebugLevel)
 	DPanicLevel Level = Level(zap.DPanicLevel)
 )
+
+func (l Level) String() string { return zapcore.Level(l).String() }

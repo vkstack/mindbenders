@@ -85,5 +85,5 @@ func WriteDBError(ctx context.Context, logger logging.IDotpeLogger, err error, d
 		"error":      error.Error(err),
 		"repository": db,
 		"error-type": etype,
-	}, logrus.ErrorLevel, "MySQLError")
+	}, logging.ErrorLevel, "MySQLError")
 }

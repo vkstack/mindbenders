@@ -5,10 +5,9 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/sirupsen/logrus"
 )
 
-func WithMetric(level logrus.Level) Option {
+func WithMetric(level Level) Option {
 	return func(dlogger *dlogger) {
 		dlogger.collector = promauto.NewCounterVec(prometheus.CounterOpts{
 			Name:      "counter",
@@ -21,7 +20,7 @@ func WithMetric(level logrus.Level) Option {
 	}
 }
 
-func (dlogger *dlogger) addMetrics(level logrus.Level, msg, caller string) {
+func (dlogger *dlogger) addMetrics(level Level, msg, caller string) {
 	if dlogger.collector != nil && level < dlogger.metricCollectionLevel {
 		parts := strings.Split(caller, "/")
 		parts = parts[len(parts)-3:]
