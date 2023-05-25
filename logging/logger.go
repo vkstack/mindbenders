@@ -25,7 +25,6 @@ type dlogger struct {
 	env string
 
 	zap      *zap.Logger
-	logger   *logrus.Logger
 	accopts  []accessLogOption
 	loptions []logOption
 
@@ -64,13 +63,6 @@ func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields logrus.Fi
 }
 
 func (dlogger *dlogger) finalizeEssentials() error {
-	if dlogger.logger == nil || dlogger.logger.Hooks == nil {
-		hook, err := GetJSONFileHook(".", "app.log")
-		if err != nil {
-			return err
-		}
-		WithHook(hook)(dlogger)
-	}
 	if dlogger.loptions == nil {
 		dlogger.loptions = append(dlogger.loptions, logOptionBasic)
 	}

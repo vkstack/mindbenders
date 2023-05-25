@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -70,11 +69,6 @@ func MustGet(opts ...Option) IDotpeLogger {
 			panic("unable to initialize logger")
 		}
 		logger = loggr
-		level, err := logrus.ParseLevel(os.Getenv("LOGLEVEL"))
-		if err != nil {
-			level = logrus.InfoLevel
-		}
-		loggr.logger.SetLevel(level)
 	})
 	return logger
 }

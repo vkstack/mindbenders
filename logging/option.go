@@ -1,10 +1,7 @@
 package logging
 
 import (
-	"io/ioutil"
 	"os"
-
-	"github.com/sirupsen/logrus"
 )
 
 type Option func(dlogger *dlogger)
@@ -13,20 +10,6 @@ func WithAppInfo(app string) Option {
 	return func(dlogger *dlogger) {
 		dlogger.app = app
 		dlogger.env = os.Getenv("ENV")
-	}
-}
-
-func WithHook(hook logrus.Hook) Option {
-	if hook == nil {
-		return nil
-	}
-	return func(dlogger *dlogger) {
-		dlogger.logger = logrus.New()
-		dlogger.logger.SetNoLock()
-		dlogger.logger.Hooks.Add(hook)
-		if dlogger.env != "dev" {
-			dlogger.logger.Out = ioutil.Discard
-		}
 	}
 }
 
