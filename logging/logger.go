@@ -14,8 +14,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 const logMaxSize int = 500
@@ -32,6 +32,8 @@ type dlogger struct {
 	env string
 
 	zap      *zap.Logger
+	zero     *zerolog.Logger
+	writer   func(Fields, Level, string)
 	accopts  []accessLogOption
 	loptions []logOption
 
@@ -111,20 +113,8 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields Fields, cb Level, 
 			fields[idx] = string(tmp)
 		}
 	}
-	dLogger.Write(fields, cb, MessageKey)
-}
-
-func (dLogger *dlogger) Write(fields Fields, cb Level, MessageKey string) {
-	zlevel := zapcore.Level(cb)
-	entry := dLogger.zap.Check(zlevel, MessageKey)
-	if t, ok := fields["time"]; ok {
-		if ts, ok := t.(time.Time); ok {
-			entry.Time = ts
-		}
-		delete(fields, "time")
-	}
-	zfields := dLogger.enzap(fields)
-	entry.Write(zfields...)
+	// dLogger.zapWrite(fields, cb, MessageKey)
+	dLogger.writer(fields, cb, MessageKey)
 }
 
 func canonicalFile(file string) string {

@@ -1,20 +1,20 @@
 package logging
 
 import (
-	"go.uber.org/zap"
+	"github.com/rs/zerolog"
 	"go.uber.org/zap/zapcore"
 )
 
 type Level zapcore.Level
 
 const (
-	PanicLevel  Level = Level(zap.PanicLevel)
-	FatalLevel  Level = Level(zap.FatalLevel)
-	ErrorLevel  Level = Level(zap.ErrorLevel)
-	WarnLevel   Level = Level(zap.WarnLevel)
-	InfoLevel   Level = Level(zap.InfoLevel)
-	DebugLevel  Level = Level(zap.DebugLevel)
-	DPanicLevel Level = Level(zap.DPanicLevel)
+	PanicLevel Level = Level(zerolog.PanicLevel)
+	FatalLevel Level = Level(zerolog.FatalLevel)
+	ErrorLevel Level = Level(zerolog.ErrorLevel)
+	WarnLevel  Level = Level(zerolog.WarnLevel)
+	InfoLevel  Level = Level(zerolog.InfoLevel)
+	DebugLevel Level = Level(zerolog.DebugLevel)
+	// DPanicLevel Level = Level(zerolog.DPanicLevel)
 )
 
-func (l Level) String() string { return zapcore.Level(l).String() }
+func (l Level) String() string { return zerolog.Level(l).String() }

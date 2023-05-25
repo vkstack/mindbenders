@@ -3,6 +3,8 @@ package logging
 import (
 	"fmt"
 	"testing"
+
+	"gitlab.com/dotpe/mindbenders/corel"
 )
 
 func Test_dlogger_Write(t *testing.T) {
@@ -26,9 +28,11 @@ func Test_dlogger_Write(t *testing.T) {
 			},
 		},
 	}
+	ctx := corel.NewCorelCtx("test")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logger.Write(tt.args.fields, tt.args.cb, tt.args.MessageKey)
+			logger.WriteLogs(ctx, tt.args.fields, tt.args.cb, tt.args.MessageKey)
+			// logger.zapWrite(tt.args.fields, tt.args.cb, tt.args.MessageKey)
 		})
 	}
 }

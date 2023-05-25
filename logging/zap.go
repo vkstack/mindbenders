@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -17,8 +18,7 @@ func (l *dlogger) enzap(fields Fields) (zfields []zap.Field) {
 	}
 	return
 }
-
-func (l *dlogger) initZap() {
+func getlogdir() string {
 	logdir := os.Getenv("LOGDIR")
 	stat, err := os.Stat(logdir)
 	if err != nil {
@@ -27,14 +27,22 @@ func (l *dlogger) initZap() {
 	if !stat.IsDir() {
 		log.Fatal("specified path is not a directory: ", logdir)
 	}
-	var filename string
+	return logdir
+}
+
+func getLogFileName(app string) string {
+	if os.Getenv("ENV") == "dev" {
+		return fmt.Sprintf("app-%s.log", app)
+	}
+	return fmt.Sprintf("app-%s.log", host)
+}
+
+func getZap(app string) *zap.Logger {
 	var zencconf zapcore.EncoderConfig
 	if os.Getenv("ENV") == "dev" {
 		zencconf = zap.NewDevelopmentEncoderConfig()
-		filename = fmt.Sprintf("app-%s-%s.log", l.app, host)
 	} else {
 		zencconf = zap.NewProductionEncoderConfig()
-		filename = fmt.Sprintf("app-%s.log", host)
 	}
 	level, err := zapcore.ParseLevel(os.Getenv("LOGLEVEL"))
 	if err != nil {
@@ -43,7 +51,7 @@ func (l *dlogger) initZap() {
 	zencconf.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 	zencconf.TimeKey = "time"
 	var zsyncer = zapcore.AddSync(&lumberjack.Logger{
-		Filename:   path.Join(logdir, filename),
+		Filename:   path.Join(getlogdir(), getLogFileName(app)),
 		MaxSize:    logMaxSize,
 		Compress:   false,
 		MaxBackups: 20,
@@ -57,5 +65,18 @@ func (l *dlogger) initZap() {
 		zsyncer,
 		level,
 	)
-	l.zap = zap.New(core)
+	return zap.New(core)
+}
+
+func (dLogger *dlogger) zapWrite(fields Fields, cb Level, MessageKey string) {
+	zlevel := zapcore.Level(cb)
+	entry := dLogger.zap.Check(zlevel, MessageKey)
+	if t, ok := fields["time"]; ok {
+		if ts, ok := t.(time.Time); ok {
+			entry.Time = ts
+		}
+		delete(fields, "time")
+	}
+	zfields := dLogger.enzap(fields)
+	entry.Write(zfields...)
 }

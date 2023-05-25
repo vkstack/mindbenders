@@ -15,6 +15,7 @@ require (
 	github.com/google/pprof v0.0.0-20230228050547-1710fef4ab10
 	github.com/prometheus/client_golang v1.14.0
 	github.com/rs/xid v1.4.0
+	github.com/rs/zerolog v1.29.1
 	github.com/streadway/amqp v1.0.0
 	github.com/zsais/go-gin-prometheus v0.1.0
 	go.uber.org/zap v1.24.0
@@ -38,6 +39,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/leodido/go-urn v1.2.2 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

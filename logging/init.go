@@ -23,7 +23,10 @@ func MustGet(opts ...Option) IDotpeLogger {
 		for _, opt := range opts {
 			opt(loggr)
 		}
-		loggr.initZap()
+		// loggr.zap = getZap(loggr.app)
+		// loggr.writer = loggr.zapWrite
+		loggr.zero = getZero(loggr.app)
+		loggr.writer = loggr.zeroWrite
 		if err := loggr.finalizeEssentials(); err != nil {
 			panic("unable to initialize logger")
 		}
