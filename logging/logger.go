@@ -15,6 +15,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type dlogger struct {
@@ -22,6 +24,7 @@ type dlogger struct {
 	appId,
 	env string
 
+	zap      *zap.Logger
 	logger   *logrus.Logger
 	accopts  []accessLogOption
 	loptions []logOption
@@ -85,6 +88,14 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	if len(dLogger.appId) > 0 {
 		fields["appID"] = dLogger.appId
 	}
+	pc, file, line, _ := runtime.Caller(1)
+	if _, ok := fields["caller"]; !ok {
+		file = canonicalFile(strings.Trim(file, "/"))
+		_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
+		funcname = strings.Trim(funcname, " ")
+		fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
+	}
+	dLogger.addMetrics(cb, MessageKey, fmt.Sprintf("%s:%d", file, line))
 	dLogger.safeRunLogOptions(ctx, fields)
 	for idx := range fields {
 		switch x := fields[idx].(type) {
@@ -101,21 +112,20 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 			fields[idx] = string(tmp)
 		}
 	}
-	pc, file, line, _ := runtime.Caller(1)
-	_, funcname := filepath.Split(runtime.FuncForPC(pc).Name())
-	file = canonicalFile(strings.Trim(file, "/"))
-	funcname = strings.Trim(funcname, " ")
-	fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
-	dLogger.addMetrics(cb, MessageKey, fmt.Sprintf("%s:%d", file, line))
-	entry := dLogger.logger.WithFields(fields)
-	entry.Time = time.Now()
+	dLogger.Write(fields, zapcore.Level(cb), MessageKey)
+}
+
+func (dLogger *dlogger) Write(fields logrus.Fields, cb zapcore.Level, MessageKey string) {
+	zlevel := zapcore.Level(cb)
+	zfields := dLogger.enzap(fields)
+	entry := dLogger.zap.Check(zlevel, MessageKey)
 	if t, ok := fields["time"]; ok {
 		if ts, ok := t.(time.Time); ok {
 			entry.Time = ts
 		}
 		delete(fields, "time")
 	}
-	entry.Log(cb, MessageKey)
+	entry.Write(zfields...)
 }
 
 func canonicalFile(file string) string {

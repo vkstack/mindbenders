@@ -19,6 +19,7 @@ require (
 	github.com/snowzach/rotatefilehook v0.0.0-20220211133110-53752135082d
 	github.com/streadway/amqp v1.0.0
 	github.com/zsais/go-gin-prometheus v0.1.0
+	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.7.0
 )
 
@@ -48,6 +49,8 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.10 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/arch v0.2.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
