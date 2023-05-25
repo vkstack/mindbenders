@@ -15,7 +15,6 @@ require (
 	github.com/google/pprof v0.0.0-20230228050547-1710fef4ab10
 	github.com/prometheus/client_golang v1.14.0
 	github.com/rs/xid v1.4.0
-	github.com/sirupsen/logrus v1.9.0
 	github.com/streadway/amqp v1.0.0
 	github.com/zsais/go-gin-prometheus v0.1.0
 	go.uber.org/zap v1.24.0
@@ -47,6 +46,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.41.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/sirupsen/logrus v1.9.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.10 // indirect
 	go.uber.org/atomic v1.7.0 // indirect

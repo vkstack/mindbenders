@@ -5,13 +5,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func (l *dlogger) enzap(fields logrus.Fields) (zfields []zap.Field) {
+func (l *dlogger) enzap(fields Fields) (zfields []zap.Field) {
 	for k, v := range fields {
 		zfields = append(zfields, zap.Any(k, v))
 	}

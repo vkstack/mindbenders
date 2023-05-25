@@ -3,15 +3,13 @@ package logging
 import (
 	"fmt"
 	"testing"
-
-	"github.com/sirupsen/logrus"
 )
 
 func Test_dlogger_Write(t *testing.T) {
 	logger := MustGet(WithAppInfo("testing")).(*dlogger)
 	fmt.Println(logger)
 	type args struct {
-		fields     logrus.Fields
+		fields     Fields
 		cb         Level
 		MessageKey string
 	}
@@ -22,7 +20,7 @@ func Test_dlogger_Write(t *testing.T) {
 		{
 			name: "test",
 			args: args{
-				fields:     logrus.Fields{"test-field-1": "test-field-value-1"},
+				fields:     Fields{"test-field-1": "test-field-value-1"},
 				cb:         InfoLevel,
 				MessageKey: "testing",
 			},

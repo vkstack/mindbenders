@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/sirupsen/logrus"
 	"gitlab.com/dotpe/mindbenders/logging"
 )
 
@@ -80,7 +79,7 @@ func Init(option Option) (*sql.DB, error) {
 func WriteDBError(ctx context.Context, logger logging.IDotpeLogger, err error, db, etype string) {
 	pc, file, line, _ := runtime.Caller(1)
 	funcname := runtime.FuncForPC(pc).Name()
-	logger.WriteLogs(ctx, logrus.Fields{
+	logger.WriteLogs(ctx, logging.Fields{
 		"caller":     fmt.Sprintf("%s:%d\n%s", file, line, funcname),
 		"error":      error.Error(err),
 		"repository": db,
