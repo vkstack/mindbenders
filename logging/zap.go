@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -42,7 +43,7 @@ func (l *dlogger) initZap() {
 	zencconf.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 	zencconf.TimeKey = "time"
 	var zsyncer = zapcore.AddSync(&lumberjack.Logger{
-		Filename:   filename,
+		Filename:   path.Join(logdir, filename),
 		MaxSize:    logMaxSize,
 		Compress:   false,
 		MaxBackups: 20,
