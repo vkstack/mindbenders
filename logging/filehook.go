@@ -13,14 +13,14 @@ import (
 )
 
 var (
-	logMazSize int  = 500
+	logMaxSize int  = 500
 	compress   bool = false
 )
 
 func MustGetFileHook(app string) logrus.Hook {
 	compress, _ = strconv.ParseBool(os.Getenv("LOGCOMPRESS"))
 	if s, _ := strconv.Atoi(os.Getenv("LOGSIZE")); s >= 100 && s <= 1000 {
-		logMazSize = s
+		logMaxSize = s
 	}
 	logdir := os.Getenv("LOGDIR")
 	stat, err := os.Stat(logdir)
@@ -54,7 +54,7 @@ func GetJSONFileHook(dir, file string) (logrus.Hook, error) {
 
 	return rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
 		Filename:   path.Join(dir, file),
-		MaxSize:    logMazSize,
+		MaxSize:    logMaxSize,
 		MaxBackups: 20,
 		MaxAge:     20,
 		Level:      logrus.DebugLevel,

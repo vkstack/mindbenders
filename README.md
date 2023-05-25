@@ -4,7 +4,7 @@ Logger
 
 ``` go
 type ILogWriter interface {
-    WriteLogs(context.Context, logrus.Fields, logrus.Level, string)
+    WriteLogs(context.Context, Fields, Level, string)
 }
 
 //ILogger ...
@@ -87,11 +87,11 @@ DLogger, err := logger.Init(
     logger.WithLogOptions(opt1),// check definition of opt1, similary you can pass more functions as you need
 )
 
-func aopt1(c *gin.Context, fields *logrus.Fields) {
+func aopt1(c *gin.Context, fields *Fields) {
     c.Set("ip", c.ClientIP())
 }
 
-func opt1(ctx context.Context, fields *logrus.Fields) {
+func opt1(ctx context.Context, fields *Fields) {
     (*fields)["clientIP"] = ctx.Value("ip")
 }
 ```

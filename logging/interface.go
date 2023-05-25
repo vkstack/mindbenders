@@ -4,11 +4,10 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 type ILogWriter interface {
-	WriteLogs(context.Context, logrus.Fields, logrus.Level, string)
+	WriteLogs(context.Context, Fields, Level, string)
 }
 
 // ILogger ...

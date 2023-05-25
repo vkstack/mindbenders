@@ -26,11 +26,11 @@ type dlogger struct {
 	accopts  []accessLogOption
 	loptions []logOption
 
-	metricCollectionLevel logrus.Level
+	metricCollectionLevel Level
 	collector             *prometheus.CounterVec
 }
 
-func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields logrus.Fields) {
+func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields Fields) {
 	for _, opt := range dlogger.loptions {
 		if opt != nil {
 			func() {
@@ -46,7 +46,7 @@ func (dlogger *dlogger) safeRunLogOptions(ctx context.Context, fields logrus.Fie
 	}
 }
 
-func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields logrus.Fields) {
+func (dlogger *dlogger) safeRunAccessLogOptions(c *gin.Context, fields Fields) {
 	defer func() {
 		if r := recover(); r != nil {
 			stack := fmt.Sprintf("%v\n%s", r, debug.Stack())
@@ -78,7 +78,7 @@ func (dlogger *dlogger) finalizeEssentials() error {
 }
 
 // WriteLogs writes log
-func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb logrus.Level, MessageKey string) {
+func (dLogger *dlogger) WriteLogs(ctx context.Context, fields Fields, cb Level, MessageKey string) {
 	if ctx == nil {
 		return
 	}
@@ -107,7 +107,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 	funcname = strings.Trim(funcname, " ")
 	fields["caller"] = fmt.Sprintf("%s:%d\n%s", file, line, funcname)
 	dLogger.addMetrics(cb, MessageKey, fmt.Sprintf("%s:%d", file, line))
-	entry := dLogger.logger.WithFields(fields)
+	entry := dLogger.logger.WithFields(logrus.Fields(fields))
 	entry.Time = time.Now()
 	if t, ok := fields["time"]; ok {
 		if ts, ok := t.(time.Time); ok {
@@ -115,7 +115,7 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields logrus.Fields, cb 
 		}
 		delete(fields, "time")
 	}
-	entry.Log(cb, MessageKey)
+	entry.Log(logrus.Level(cb), MessageKey)
 }
 
 func canonicalFile(file string) string {
@@ -130,14 +130,14 @@ func canonicalFile(file string) string {
 func (dLogger *dlogger) Gin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		var fields = logrus.Fields{}
+		var fields = Fields{}
 		dLogger.safeRunAccessLogOptions(c, fields)
-		var level = new(logrus.Level)
-		*level = logrus.InfoLevel
+		var level Level
+		level = InfoLevel
 
 		//deferred request log
 		fields["time"] = start
-		defer dLogger.WriteLogs(c, fields, *level, "access-log")
+		defer dLogger.WriteLogs(c, fields, level, "access-log")
 
 		fields["request-statusCode"] = 0
 		c.Next()
@@ -154,11 +154,11 @@ func (dLogger *dlogger) Gin() gin.HandlerFunc {
 
 		if len(c.Errors) > 0 {
 			fields["error"] = c.Errors.ByType(gin.ErrorTypePrivate).String()
-			*level = logrus.ErrorLevel
+			level = ErrorLevel
 		} else if code > 499 {
-			*level = logrus.ErrorLevel
+			level = ErrorLevel
 		} else if code > 399 {
-			*level = logrus.WarnLevel
+			level = WarnLevel
 		}
 	}
 }
