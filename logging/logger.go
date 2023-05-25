@@ -116,7 +116,6 @@ func (dLogger *dlogger) WriteLogs(ctx context.Context, fields Fields, cb Level, 
 
 func (dLogger *dlogger) Write(fields Fields, cb Level, MessageKey string) {
 	zlevel := zapcore.Level(cb)
-	zfields := dLogger.enzap(fields)
 	entry := dLogger.zap.Check(zlevel, MessageKey)
 	if t, ok := fields["time"]; ok {
 		if ts, ok := t.(time.Time); ok {
@@ -124,6 +123,7 @@ func (dLogger *dlogger) Write(fields Fields, cb Level, MessageKey string) {
 		}
 		delete(fields, "time")
 	}
+	zfields := dLogger.enzap(fields)
 	entry.Write(zfields...)
 }
 
