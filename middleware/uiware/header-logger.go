@@ -4,7 +4,7 @@ import (
 	"github.com/emirpasic/gods/sets/hashset"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
+	"gitlab.com/dotpe/mindbenders/logging"
 )
 
 var mandatorilyAllowedHeaders = hashset.New("Session_id", "Authorization")
@@ -26,7 +26,7 @@ func AllowCorsHeaders(r *gin.Engine, headers ...string) {
 	r.Use(cors.New(config))
 }
 
-func HeaderLogoption(c *gin.Context, fields logrus.Fields) {
+func HeaderLogoption(c *gin.Context, fields logging.Fields) {
 	if fields == nil || c == nil {
 		return
 	}

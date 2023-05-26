@@ -8,7 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
-	"github.com/sirupsen/logrus"
 	"gitlab.com/dotpe/mindbenders/errors"
 )
 
@@ -113,15 +112,6 @@ func NewCorelCtxFromRequest(ctx context.Context, sessionId, requestId string) co
 	corelId.init(ctx)
 	ctx = context.WithValue(ctx, CtxCorelLocator, corelId)
 	return ctx
-}
-
-func (corelid *CoRelationId) Logrus(f logrus.Fields) {
-	f["sessionId"] = corelid.SessionId
-	f["requestId"] = corelid.RequestId
-	f["appRequestId"] = corelid.AppRequestId
-	if len(corelid.RequestSource) != 0 {
-		f["requestSource"] = corelid.RequestSource
-	}
 }
 
 func (corelid *CoRelationId) GetSessionId() string {

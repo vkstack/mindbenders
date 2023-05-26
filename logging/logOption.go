@@ -9,14 +9,15 @@ import (
 	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"gitlab.com/dotpe/mindbenders/corel"
 )
 
-type accessLogOption func(c *gin.Context, fields logrus.Fields)
+type accessLogOption func(c *gin.Context, fields Fields)
+
+type logOption func(ctx context.Context, fields Fields)
 
 func accessLogOptionBasic(app string) accessLogOption {
-	return func(c *gin.Context, fields logrus.Fields) {
+	return func(c *gin.Context, fields Fields) {
 		corelid, _ := corel.GetCorelationId(c)
 		c.Writer.Header().Set("request-id", corelid.GetRequestId())
 		fields["request-referer"] = c.Request.Referer()
@@ -32,7 +33,7 @@ func accessLogOptionBasic(app string) accessLogOption {
 	}
 }
 
-func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
+func AccessLogOptionRequestBody(c *gin.Context, fields Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
 		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
@@ -42,14 +43,17 @@ func AccessLogOptionRequestBody(c *gin.Context, fields logrus.Fields) {
 	}
 }
 
-type logOption func(ctx context.Context, fields logrus.Fields)
-
-func logOptionBasic(ctx context.Context, fields logrus.Fields) {
+func logOptionBasic(ctx context.Context, fields Fields) {
 	coRelationID, err := corel.GetCorelationId(ctx)
 	if err != nil {
 		log.Panicln("invalid corelId: ", err.Error())
 	}
-	coRelationID.Logrus(fields)
+	fields["sessionId"] = coRelationID.SessionId
+	fields["requestId"] = coRelationID.RequestId
+	fields["appRequestId"] = coRelationID.AppRequestId
+	if len(coRelationID.RequestSource) != 0 {
+		fields["requestSource"] = coRelationID.RequestSource
+	}
 	fields["hostname"] = host
 	if os.Getenv("LOGLEVEL") == "debug" {
 		fields["debug-stack-trace"] = string(debug.Stack())

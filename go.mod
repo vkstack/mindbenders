@@ -15,11 +15,12 @@ require (
 	github.com/google/pprof v0.0.0-20230228050547-1710fef4ab10
 	github.com/prometheus/client_golang v1.14.0
 	github.com/rs/xid v1.4.0
-	github.com/sirupsen/logrus v1.9.0
-	github.com/snowzach/rotatefilehook v0.0.0-20220211133110-53752135082d
+	github.com/rs/zerolog v1.29.1
 	github.com/streadway/amqp v1.0.0
 	github.com/zsais/go-gin-prometheus v0.1.0
+	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.7.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
@@ -38,6 +39,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/leodido/go-urn v1.2.2 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -46,13 +48,15 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.41.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/sirupsen/logrus v1.9.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.10 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/arch v0.2.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

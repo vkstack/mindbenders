@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"gitlab.com/dotpe/mindbenders/logging"
 )
 
@@ -25,12 +24,12 @@ func Recovery(l logging.ILogWriter) gin.HandlerFunc {
 						if strings.Contains(strings.ToLower(se.Error()), "broken pipe") || strings.Contains(strings.ToLower(se.Error()), "connection reset by peer") {
 							c.Error(err.(error)) // nolint: errcheck
 							c.Abort()
-							l.WriteLogs(c, logrus.Fields{"stacktrace": stack}, logrus.TraceLevel, "BrokenPipe")
+							l.WriteLogs(c, logging.Fields{"stacktrace": stack}, logging.FatalLevel, "BrokenPipe")
 							return
 						}
 					}
 				}
-				l.WriteLogs(c, logrus.Fields{"stacktrace": stack}, logrus.FatalLevel, "Panic")
+				l.WriteLogs(c, logging.Fields{"stacktrace": stack}, logging.FatalLevel, "Panic")
 				c.JSON(http.StatusExpectationFailed, map[string]interface{}{
 					"message": "something went wrong",
 					"status":  false,
