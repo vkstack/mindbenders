@@ -1,15 +1,14 @@
 package logging
 
 import (
-	"fmt"
 	"testing"
 
 	"gitlab.com/dotpe/mindbenders/corel"
 )
 
 func Test_dlogger_Write(t *testing.T) {
-	logger := MustGet(WithAppInfo("testing")).(*dlogger)
-	fmt.Println(logger)
+	logger := getlogger(WithAppInfo("testing"), WithZero)
+	logger1 := getlogger(WithAppInfo("testing1"), WithZap)
 	type args struct {
 		fields     Fields
 		cb         Level
@@ -28,11 +27,11 @@ func Test_dlogger_Write(t *testing.T) {
 			},
 		},
 	}
-	ctx := corel.NewCorelCtx("test")
 	for _, tt := range tests {
+		ctx := corel.NewCorelCtx("testing")
 		t.Run(tt.name, func(t *testing.T) {
 			logger.WriteLogs(ctx, tt.args.fields, tt.args.cb, tt.args.MessageKey)
-			// logger.zapWrite(tt.args.fields, tt.args.cb, tt.args.MessageKey)
+			logger1.WriteLogs(ctx, tt.args.fields, tt.args.cb, tt.args.MessageKey)
 		})
 	}
 }

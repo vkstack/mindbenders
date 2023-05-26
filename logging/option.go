@@ -26,3 +26,11 @@ func WithLogOptions(opts ...logOption) Option {
 		dlogger.loptions = append(dlogger.loptions, opts...)
 	}
 }
+
+func WithZap(dlogger *dlogger) {
+	dlogger.iszap = true
+}
+
+func WithZero(dlogger *dlogger) {
+	dlogger.iszap = false
+}

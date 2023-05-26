@@ -14,17 +14,27 @@ func WithMetric(level Level) Option {
 			Subsystem: "logs",
 			Namespace: "dotpe",
 			Help:      "log counts from application",
-		}, []string{"level", "msg", "caller"})
+		}, []string{"level", "caller"})
 		prometheus.Register(dlogger.collector)
 		dlogger.metricCollectionLevel = level
 	}
 }
 
-func (dlogger *dlogger) addMetrics(level Level, msg, caller string) {
+func (dlogger *dlogger) addMetrics(level Level, caller string) {
 	if dlogger.collector != nil && level < dlogger.metricCollectionLevel {
 		parts := strings.Split(caller, "/")
 		parts = parts[len(parts)-3:]
 		caller = strings.Join(parts, "/")
-		dlogger.collector.WithLabelValues(level.String(), msg, caller).Add(1)
+		dlogger.collector.WithLabelValues(level.String(), caller).Add(1)
 	}
 }
+
+// func AddMetrics(ctx context.Context, f Fields) {
+// 	if c, ok := f["caller"]; ok {
+// 		if c1, ok := c.(string); ok {
+// 			parts := strings.Split(c1, "\n")
+// 			caller := parts[len(parts)-1]
+// 			dlogger.collector.WithLabelValues(level.String(), msg, caller).Add(1)
+// 		}
+// 	}
+// }

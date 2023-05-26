@@ -69,7 +69,7 @@ func getZap(app string) *zap.Logger {
 }
 
 func (dLogger *dlogger) zapWrite(fields Fields, cb Level, MessageKey string) {
-	zlevel := zapcore.Level(cb)
+	zlevel := mapZap[cb]
 	entry := dLogger.zap.Check(zlevel, MessageKey)
 	if t, ok := fields["time"]; ok {
 		if ts, ok := t.(time.Time); ok {

@@ -14,6 +14,8 @@ import (
 
 type accessLogOption func(c *gin.Context, fields Fields)
 
+type logOption func(ctx context.Context, fields Fields)
+
 func accessLogOptionBasic(app string) accessLogOption {
 	return func(c *gin.Context, fields Fields) {
 		corelid, _ := corel.GetCorelationId(c)
@@ -40,8 +42,6 @@ func AccessLogOptionRequestBody(c *gin.Context, fields Fields) {
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 	}
 }
-
-type logOption func(ctx context.Context, fields Fields)
 
 func logOptionBasic(ctx context.Context, fields Fields) {
 	coRelationID, err := corel.GetCorelationId(ctx)

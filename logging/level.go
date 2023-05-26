@@ -1,20 +1,58 @@
 package logging
 
 import (
+	"fmt"
+
 	"github.com/rs/zerolog"
 	"go.uber.org/zap/zapcore"
 )
 
-type Level zapcore.Level
+type Level int8
 
 const (
-	PanicLevel Level = Level(zerolog.PanicLevel)
-	FatalLevel Level = Level(zerolog.FatalLevel)
-	ErrorLevel Level = Level(zerolog.ErrorLevel)
-	WarnLevel  Level = Level(zerolog.WarnLevel)
-	InfoLevel  Level = Level(zerolog.InfoLevel)
-	DebugLevel Level = Level(zerolog.DebugLevel)
+	PanicLevel Level = iota
+	FatalLevel
+	ErrorLevel
+	WarnLevel
+	InfoLevel
+	DebugLevel
+	TraceLevel
 	// DPanicLevel Level = Level(zerolog.DPanicLevel)
 )
 
-func (l Level) String() string { return zerolog.Level(l).String() }
+func (l Level) String() string {
+	if str, ok := mapLevelStr[l]; ok {
+		return str
+	}
+	return fmt.Sprintf("invalid:%d", l)
+}
+
+var (
+	mapZerolog = map[Level]zerolog.Level{
+		PanicLevel: zerolog.PanicLevel,
+		FatalLevel: zerolog.FatalLevel,
+		ErrorLevel: zerolog.ErrorLevel,
+		WarnLevel:  zerolog.WarnLevel,
+		InfoLevel:  zerolog.InfoLevel,
+		DebugLevel: zerolog.DebugLevel,
+	}
+
+	mapZap = map[Level]zapcore.Level{
+		PanicLevel: zapcore.PanicLevel,
+		FatalLevel: zapcore.FatalLevel,
+		ErrorLevel: zapcore.ErrorLevel,
+		WarnLevel:  zapcore.WarnLevel,
+		InfoLevel:  zapcore.InfoLevel,
+		DebugLevel: zapcore.DebugLevel,
+	}
+
+	mapLevelStr = map[Level]string{
+		PanicLevel: "panic",
+		FatalLevel: "fatal",
+		ErrorLevel: "error",
+		WarnLevel:  "warn",
+		InfoLevel:  "info",
+		DebugLevel: "debug",
+		TraceLevel: "trace",
+	}
+)

@@ -29,7 +29,8 @@ func getZero(app string) *zerolog.Logger {
 }
 
 func (dLogger *dlogger) zeroWrite(fields Fields, cb Level, MessageKey string) {
-	event := dLogger.zero.WithLevel(zerolog.Level(cb))
+	zerolevel := mapZerolog[cb]
+	event := dLogger.zero.WithLevel(zerolevel)
 	event.Time("time", time.Now())
 	if t, ok := fields["time"]; ok {
 		if ts, ok := t.(time.Time); ok {
