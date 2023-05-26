@@ -4,7 +4,11 @@ Logger
 
 ``` go
 type ILogWriter interface {
-    WriteLogs(context.Context, Fields, Level, string)
+	WriteLogs(context.Context, Fields, Level, string)
+	Info(context.Context, Fields, string)
+	Error(context.Context, Fields, string)
+	Warn(context.Context, Fields, string)
+	Debug(context.Context, Fields, string)
 }
 
 //ILogger ...
@@ -26,38 +30,6 @@ In order to initialize one has to have pass the 2 things for sure.
     }
     ```
 
-2. `logger.WithHookContainer(hookContainer)`, definition is as follows
-
-    ```go
-    //.....
-    type IHookContainer interface {
-        GetHook() (Hook, error)
-    }
-
-    //.....
-    func WithHookContainer(hookContainer IHookContainer) Option {
-        hook, err := hookContainer.getHook()
-        if err != nil {
-            return nil
-        }
-        return WithHook(hook)
-    }
-    ```
-
-Hook
-
-1. Elastic hook container
-
-    ```go
-    logconf = logger.NewKibanaConfig(url, key, secret, os.Getenv("APP"), "")
-    ```
-
-2. File Hook container
-
-    ```go
-    logconf = logger.NewKibanaConfig(url, key, secret, os.Getenv("APP"), "")
-    ```
-
 **logger initializations**
 Usage [[link](https://gitlab.com/dotcomino/2c/-/blob/master/utils/logger.go)]
 
@@ -74,12 +46,10 @@ import (
 var DLogger mbinterfaces.IDotpeLogger
 
 //write your logic to initialize or fetch hookContainer objectct
-var hookContainer logger.IHookContainer
 
 // InitLogger ..
 DLogger, err := logger.Init(
     logger.WithAppInfo(os.Getenv("APP")),
-    logger.WithHookContainer(hookContainer),
     logger.WithAccessLogOptions(
         logger.AccessLogOptionRequestBody,
         aopt1, // check definition of aopt1, similary you can pass more functions as you need
