@@ -4,7 +4,7 @@ Logger
 
 ``` go
 type ILogWriter interface {
-	WriteLogs(context.Context, Fields, Level, string)
+	Log(context.Context, Fields, Level, string)
 	Info(context.Context, Fields, string)
 	Error(context.Context, Fields, string)
 	Warn(context.Context, Fields, string)

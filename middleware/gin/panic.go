@@ -24,12 +24,12 @@ func Recovery(l logging.ILogWriter) gin.HandlerFunc {
 						if strings.Contains(strings.ToLower(se.Error()), "broken pipe") || strings.Contains(strings.ToLower(se.Error()), "connection reset by peer") {
 							c.Error(err.(error)) // nolint: errcheck
 							c.Abort()
-							l.WriteLogs(c, logging.Fields{"stacktrace": stack}, logging.FatalLevel, "BrokenPipe")
+							l.Panic(c, logging.Fields{"stacktrace": stack}, "BrokenPipe")
 							return
 						}
 					}
 				}
-				l.WriteLogs(c, logging.Fields{"stacktrace": stack}, logging.FatalLevel, "Panic")
+				l.Panic(c, logging.Fields{"stacktrace": stack}, "Panic")
 				c.JSON(http.StatusExpectationFailed, map[string]interface{}{
 					"message": "something went wrong",
 					"status":  false,

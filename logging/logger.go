@@ -82,6 +82,12 @@ func (dLogger *dlogger) write(ctx context.Context, fields Fields, cb Level, Mess
 	if ctx == nil {
 		return
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			stack := fmt.Sprintf("%v\n%s", r, debug.Stack())
+			log.Println("unknown error while operating accesslogOptions\n", stack)
+		}
+	}()
 	for _, ex := range dLogger.fieldexecutor {
 		ex(fields)
 	}
@@ -90,8 +96,14 @@ func (dLogger *dlogger) write(ctx context.Context, fields Fields, cb Level, Mess
 	dLogger.writer(fields, cb, MessageKey)
 }
 
-// WriteLogs writes log
+// Log writes log
+// Deprecated: Use [Log] instead.
 func (dLogger *dlogger) WriteLogs(ctx context.Context, fields Fields, cb Level, MessageKey string) {
+	dLogger.write(ctx, fields, cb, MessageKey)
+}
+
+// Log writes log
+func (dLogger *dlogger) Log(ctx context.Context, fields Fields, cb Level, MessageKey string) {
 	dLogger.write(ctx, fields, cb, MessageKey)
 }
 
@@ -109,4 +121,12 @@ func (dLogger *dlogger) Warn(ctx context.Context, fields Fields, MessageKey stri
 
 func (dLogger *dlogger) Debug(ctx context.Context, fields Fields, MessageKey string) {
 	dLogger.write(ctx, fields, DebugLevel, MessageKey)
+}
+
+func (dLogger *dlogger) Panic(ctx context.Context, fields Fields, MessageKey string) {
+	dLogger.write(ctx, fields, PanicLevel, MessageKey)
+}
+
+func (dLogger *dlogger) Fatal(ctx context.Context, fields Fields, MessageKey string) {
+	dLogger.write(ctx, fields, FatalLevel, MessageKey)
 }

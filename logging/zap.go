@@ -39,17 +39,6 @@ func getLogFileName(app string) string {
 
 func getZap(app string) *zap.Logger {
 	var zencconf zapcore.EncoderConfig
-	if os.Getenv("ENV") == "dev" {
-		zencconf = zap.NewDevelopmentEncoderConfig()
-	} else {
-		zencconf = zap.NewProductionEncoderConfig()
-	}
-	level, err := zapcore.ParseLevel(os.Getenv("LOGLEVEL"))
-	if err != nil {
-		level = zap.InfoLevel
-	}
-	zencconf.EncodeTime = zapcore.RFC3339NanoTimeEncoder
-	zencconf.TimeKey = "time"
 	var zsyncer = zapcore.AddSync(&lumberjack.Logger{
 		Filename:   path.Join(getlogdir(), getLogFileName(app)),
 		MaxSize:    logMaxSize,
@@ -59,6 +48,15 @@ func getZap(app string) *zap.Logger {
 	})
 	if os.Getenv("ENV") == "dev" {
 		zsyncer = zapcore.NewMultiWriteSyncer(zsyncer, os.Stdout)
+		zencconf = zap.NewDevelopmentEncoderConfig()
+	} else {
+		zencconf = zap.NewProductionEncoderConfig()
+	}
+	zencconf.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+	zencconf.TimeKey = "time"
+	level, err := zapcore.ParseLevel(os.Getenv("LOGLEVEL"))
+	if err != nil {
+		level = zap.InfoLevel
 	}
 	var core zapcore.Core = zapcore.NewCore(
 		zapcore.NewJSONEncoder(zencconf),
@@ -78,5 +76,6 @@ func (dLogger *dlogger) zapWrite(fields Fields, cb Level, MessageKey string) {
 		delete(fields, "time")
 	}
 	zfields := dLogger.enzap(fields)
+	entry.After(entry.Entry, nil)
 	entry.Write(zfields...)
 }

@@ -18,7 +18,7 @@ func (dLogger *dlogger) Gin() gin.HandlerFunc {
 
 		//deferred request log
 		fields["time"] = start
-		defer dLogger.WriteLogs(c, fields, level, "access-log")
+		defer dLogger.Log(c, fields, level, "access-log")
 
 		fields["request-statusCode"] = 0
 		c.Next()

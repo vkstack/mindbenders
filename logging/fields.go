@@ -47,9 +47,6 @@ func fieldNormalize(fields Fields) {
 			fields[idx] = x.String()
 		case error:
 			fields[idx] = x.Error()
-			// default:
-			// 	tmp, _ := json.Marshal(fields[idx])
-			// 	fields[idx] = string(tmp)
 		}
 	}
 }
