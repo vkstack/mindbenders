@@ -18,11 +18,8 @@ var (
 	compress bool = false
 )
 
-type Fields map[string]interface{}
-
 type dlogger struct {
 	app,
-	appId,
 	env string
 
 	zap   *zap.Logger

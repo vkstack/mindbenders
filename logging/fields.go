@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+type Fields map[string]interface{}
+
 func caller(f Fields) {
 	if _, ok := f["caller"]; !ok {
 		pc, file, line, _ := runtime.Caller(3)
