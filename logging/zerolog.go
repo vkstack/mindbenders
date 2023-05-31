@@ -23,6 +23,11 @@ func getZero(app string) *zerolog.Logger {
 	} else {
 		multi = zerolog.MultiLevelWriter(rotator)
 	}
+	level, err := zerolog.ParseLevel(os.Getenv("LOGLEVEL"))
+	if err != nil || level == zerolog.NoLevel {
+		level = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(level)
 	zerolog.MessageFieldName = "msg"
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 	logger := zerolog.New(multi)
