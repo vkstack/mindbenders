@@ -10,8 +10,7 @@ type BasicError struct {
 	msg   string
 	cause error
 
-	code    int
-	codeStr string
+	code string
 	// see the comments in https://stackoverflow.com/questions/40807281/is-there-any-performance-cost-in-using-runtime-caller
 	// stack []uintptr
 }
@@ -29,19 +28,19 @@ func New(msg string) error { return &BasicError{msg: msg} }
 
 func NewWithError(err error) error { return &BasicError{msg: err.Error(), cause: err} }
 
-func NewWithCode(msg string, code int) error { return &BasicError{msg: msg, code: code} }
+func NewWithCode(msg string, code string) error { return &BasicError{msg: msg, code: code} }
 
 func WrapMessage(err error, msg string) error {
 	if err == nil {
 		return nil
 	}
-	if e, ok := err.(interface{ Code() int }); ok {
+	if e, ok := err.(interface{ Code() string }); ok {
 		return &BasicError{msg: msg, cause: err, code: e.Code()}
 	}
 	return &BasicError{msg: msg, cause: err}
 }
 
-func WrapMessageWithCode(err error, msg string, code int) error {
+func WrapMessageWithCode(err error, msg string, code string) error {
 	if err == nil {
 		return nil
 	}
