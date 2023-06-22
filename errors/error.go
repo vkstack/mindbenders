@@ -80,9 +80,9 @@ func UnWrap(err error) error {
 	return err
 }
 
-func Code(err error) int {
-	if coder, ok := err.(interface{ Code() int }); ok {
+func Code(err error) string {
+	if coder, ok := err.(interface{ Code() string }); ok {
 		return coder.Code()
 	}
-	return 0
+	return ""
 }
