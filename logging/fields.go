@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -40,6 +41,10 @@ func canonicalFile(file string) string {
 
 func fieldNormalize(fields Fields) {
 	for idx := range fields {
+		if fields[idx] == nil {
+			delete(fields, idx)
+			continue
+		}
 		switch x := fields[idx].(type) {
 		case int8, int16, int32, int64, int,
 			uint8, uint16, uint32, uint64, uint,
@@ -49,6 +54,9 @@ func fieldNormalize(fields Fields) {
 			fields[idx] = x.String()
 		case error:
 			fields[idx] = x.Error()
+		default:
+			b, _ := json.Marshal(x)
+			fields[idx] = string(b)
 		}
 	}
 }
