@@ -64,7 +64,7 @@ func (e *BasicError) Error() string { return e.msg }
 
 func (e *BasicError) Cause() error { return e.cause }
 
-func (e *BasicError) Code() interface{} { return e.code }
+func (e *BasicError) Code() string { return e.code }
 
 func Cause(err error) error {
 	if causer, ok := err.(causer); ok && causer.Cause() != nil {
