@@ -96,15 +96,14 @@ func WithUploader(uploader uploader.IProfileUploader) Option {
 	}
 }
 
-/*
-	The below targetsetter is a very general pathsetter
-		the location of the profiles will be as follows
-	--------{ENV}	>>	{Service}	>>	{Date (YYYY-MM-DD)}
-		>>	{Host}	>>	{Hour}	>>	{Minute:Second}	>>	{{{all profiles}}}
-*/
-
 func WithTargetSetter(cfg *Config) {
 	cfg.OutputDirFn = func(t time.Time) string {
-		return path.Join(os.Getenv("ENV"), cfg.Service, t.Format("2006-01-02"), cfg.Host, t.Format("15/04:05.000"))
+		target := path.Join(
+			os.Getenv("ENV"),
+			cfg.Service,
+			t.Format("2006-01-02/15")+"-"+cfg.Host,
+			cfg.Host+"-"+t.Format("15:04:05"),
+		)
+		return target
 	}
 }
