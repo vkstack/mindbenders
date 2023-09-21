@@ -7,7 +7,6 @@ import (
 
 	"gitlab.com/dotpe/mindbenders/errors"
 
-	"net/http"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -33,7 +32,7 @@ func (corelid *CoRelationId) loadAuth() error {
 	return nil
 }
 
-func corel(ctx context.Context) (*CoRelationId, error) {
+func ReadCorelId(ctx context.Context) (*CoRelationId, error) {
 	if ctx == nil {
 		return nil, errors.New("nil context")
 	}
@@ -46,31 +45,22 @@ func corel(ctx context.Context) (*CoRelationId, error) {
 				return corelid, nil
 			}
 		}
-		var corelid = new(CoRelationId)
-		corelid.init(c)
-		if len(corelid.RequestId) > 0 {
-			c.Set(string(CtxCorelLocator), corelid)
-		}
-		return corelid, nil
 	}
 	return nil, errors.New("invalid/missing corelationId")
 }
 
-// GetCorelationId ...
-func GetCorelationId(ctx context.Context) (corelid *CoRelationId, err error) {
-	return corel(ctx)
-}
-
-func AttachCorelToHttp(corelid *CoRelationId, req *http.Request) {
-	req.Header.Set("request_id", corelid.RequestId)
-	req.Header.Set("session_id", corelid.SessionId)
-	req.Header.Set(string(CtxCorelLocator), corelid.Child().enc)
-}
-
-func AttachCorelToHttpFromCtx(ctx context.Context, req *http.Request) {
-	if corelid, err := corel(ctx); err == nil {
-		AttachCorelToHttp(corelid, req)
+// concurrent unsafe
+// it adds corelId if not found
+func GetCorelationId(ctx context.Context) *CoRelationId {
+	corelid, err := ReadCorelId(ctx)
+	if err != nil || corelid == nil {
+		var corelid = new(CoRelationId)
+		corelid.init(ctx)
+		if c, ok := ctx.(*gin.Context); ok {
+			c.Set(string(CtxCorelLocator), corelid)
+		}
 	}
+	return corelid
 }
 
 func EncodeCorel(corelId *CoRelationId) string {
@@ -92,8 +82,7 @@ func DecodeCorel(str string, dst interface{}) error {
 func DecodeCorelationId(encoded string) *CoRelationId {
 	var corel CoRelationId
 	if err := DecodeCorel(encoded, &corel); err != nil {
-		corelid, _ := GetCorelationId(NewCorelCtx(""))
-		return corelid
+		return NewCorelId()
 	}
 	corel.enc = encoded
 	corel.once.Do(func() {})

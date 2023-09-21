@@ -3,6 +3,7 @@ package corel
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 
@@ -32,9 +33,9 @@ type jwtinfo struct {
 	SessionId string `json:"sessionID" header:"session_id" validate:"required"`
 }
 
-func (corelid *CoRelationId) init(c context.Context) {
+func (corelid *CoRelationId) init(ctx context.Context) {
 	corelid.once.Do(func() {
-		if gc, ok := c.(*gin.Context); ok {
+		if gc, ok := ctx.(*gin.Context); ok {
 			gc.ShouldBindHeader(&corelid)
 			rawcorel := gc.Request.Header.Get(string(CtxCorelLocator))
 			if len(rawcorel) > 0 {
@@ -61,18 +62,20 @@ func (corelid *CoRelationId) init(c context.Context) {
 }
 
 func (corelid *CoRelationId) Child() *CoRelationId {
-	ch := CoRelationId(*corelid)
-	ch.AppRequestId = xid.New().String()
-	ch.RequestSource = os.Getenv("APP") + "-" + corelid.AppRequestId
-	ch.enc = EncodeCorel(&ch)
-	return &ch
+	return NewCorelId(
+		corelid.SessionId,
+		corelid.RequestId,
+		xid.New().String(),
+		fmt.Sprintf("%s-%s", os.Getenv("APP"), corelid.AppRequestId),
+	)
 }
 
 func (corelid *CoRelationId) Sibling() *CoRelationId {
-	ch := CoRelationId(*corelid)
-	ch.AppRequestId = xid.New().String()
-	ch.enc = EncodeCorel(&ch)
-	return &ch
+	return NewCorelId(
+		corelid.SessionId,
+		corelid.RequestId,
+		xid.New().String(),
+	)
 }
 
 func (jwt *jwtinfo) UnmarshalJSON(raw []byte) error {
@@ -89,35 +92,41 @@ func (jwt *jwtinfo) UnmarshalJSON(raw []byte) error {
 	return nil
 }
 
-// This is used when the default context is used to define a new corel
-func NewCorelCtx(sessionId string) context.Context {
-	return NewCorelCtxFromCtx(context.Background(), sessionId)
-}
-
-func NewCorelCtxFromCorel(corelid *CoRelationId) context.Context {
-	return context.WithValue(context.Background(), CtxCorelLocator, corelid)
-}
-
-// This is used to define a new corel on the context
-func NewCorelCtxFromCtx(ctx context.Context, sessionId string) context.Context {
-	corelId := &CoRelationId{SessionId: sessionId}
-	corelId.init(ctx)
-	ctx = context.WithValue(ctx, CtxCorelLocator, corelId)
-	return ctx
-}
-
-// Any task consumer will call this method only
-func NewCorelCtxFromRequest(ctx context.Context, sessionId, requestId string) context.Context {
-	corelId := &CoRelationId{SessionId: sessionId, RequestId: requestId, AppRequestId: xid.New().String()}
-	corelId.init(ctx)
-	ctx = context.WithValue(ctx, CtxCorelLocator, corelId)
-	return ctx
-}
-
 func (corelid *CoRelationId) GetSessionId() string {
 	return corelid.SessionId
 }
 
 func (corelid *CoRelationId) GetRequestId() string {
 	return corelid.RequestId
+}
+
+/*
+ids[0] - sessionId
+ids[1] - requestId
+ids[3] - subRequestId
+ids[4] - requestSource
+*/
+func NewCorelId(ids ...string) *CoRelationId {
+	var tmp = xid.New().String()
+	var corelid = CoRelationId{
+		SessionId:     tmp,
+		RequestId:     tmp,
+		AppRequestId:  tmp,
+		RequestSource: "",
+	}
+	switch x := len(ids); {
+	case x >= 4:
+		corelid.RequestSource = ids[3]
+		fallthrough
+	case x >= 3:
+		corelid.AppRequestId = ids[2]
+		fallthrough
+	case x >= 2:
+		corelid.RequestId = ids[1]
+		fallthrough
+	case x >= 1:
+		corelid.SessionId = ids[0]
+	}
+	corelid.init(context.TODO())
+	return &corelid
 }

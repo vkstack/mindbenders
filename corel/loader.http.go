@@ -11,11 +11,8 @@ import (
 * inside header it will write `Corel`="base64 of json"
  */
 func HttpCorelLoader(ctx context.Context, header http.Header) {
-	if corelid, err := GetCorelationId(ctx); err == nil {
-		header.Set("request_id", corelid.RequestId)
-		header.Set("session_id", corelid.SessionId)
-		header.Set(string(CtxCorelLocator), corelid.Child().Enc())
-	}
+	corelid := GetCorelationId(ctx)
+	header.Set(string(CtxCorelLocator), corelid.Child().Enc())
 }
 
 /*
@@ -23,12 +20,7 @@ func HttpCorelLoader(ctx context.Context, header http.Header) {
  */
 func HttpCorelUnLoader(ctx context.Context, header http.Header) context.Context {
 	enc := header.Get(string(CtxCorelLocator))
-	var corelid *CoRelationId
-	if len(enc) == 0 {
-		corelid, _ = corel(ctx)
-	} else {
-		corelid = DecodeCorelationId(enc)
-	}
+	corelid := DecodeCorelationId(enc)
 	if gc, ok := ctx.(*gin.Context); ok {
 		gc.Set(string(CtxCorelLocator), corelid)
 		return gc

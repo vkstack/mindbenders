@@ -3,6 +3,7 @@ package logging
 import (
 	"bytes"
 	"context"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -18,7 +19,7 @@ type logOption func(ctx context.Context, fields Fields)
 
 func accessLogOptionBasic(app string) accessLogOption {
 	return func(c *gin.Context, fields Fields) {
-		corelid, _ := corel.GetCorelationId(c)
+		corelid := corel.GetCorelationId(c)
 		c.Writer.Header().Set("request-id", corelid.GetRequestId())
 		fields["request-referer"] = c.Request.Referer()
 		fields["request-clientIP"] = c.ClientIP()
@@ -36,7 +37,7 @@ func accessLogOptionBasic(app string) accessLogOption {
 func AccessLogOptionRequestBody(c *gin.Context, fields Fields) {
 	var bodyBytes []byte
 	if c.Request.Body != nil {
-		bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+		bodyBytes, _ = io.ReadAll(c.Request.Body)
 		fields["requestBody"] = string(bodyBytes)
 		// Restore the io.ReadCloser to its original state
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
@@ -44,15 +45,21 @@ func AccessLogOptionRequestBody(c *gin.Context, fields Fields) {
 }
 
 func logOptionBasic(ctx context.Context, fields Fields) {
-	coRelationID, err := corel.GetCorelationId(ctx)
+	var corelid *corel.CoRelationId
+	var err error
+	if _, ok := ctx.(*gin.Context); ok {
+		corelid = corel.GetCorelationId(ctx)
+	} else {
+		corelid, err = corel.ReadCorelId(ctx)
+	}
 	if err != nil {
 		log.Panicln("invalid corelId: ", err.Error())
 	}
-	fields["sessionId"] = coRelationID.SessionId
-	fields["requestId"] = coRelationID.RequestId
-	fields["appRequestId"] = coRelationID.AppRequestId
-	if len(coRelationID.RequestSource) != 0 {
-		fields["requestSource"] = coRelationID.RequestSource
+	fields["sessionId"] = corelid.SessionId
+	fields["requestId"] = corelid.RequestId
+	fields["appRequestId"] = corelid.AppRequestId
+	if len(corelid.RequestSource) != 0 {
+		fields["requestSource"] = corelid.RequestSource
 	}
 	fields["hostname"] = host
 	if os.Getenv("LOGLEVEL") == "debug" {

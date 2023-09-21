@@ -29,7 +29,7 @@ func Test_dlogger_Write(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		ctx := corel.NewCorelCtx("testing")
+		ctx := corel.NewOrphenContext("testing")
 		t.Run(tt.name, func(t *testing.T) {
 			logger.Debug(ctx, tt.args.fields, tt.args.MessageKey)
 			logger.Info(ctx, tt.args.fields, tt.args.MessageKey)

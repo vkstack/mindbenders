@@ -44,7 +44,7 @@ func NewPacket(raw []byte, dst interface{}) (Packet, error) {
 		return nil, err
 	}
 	p.corelid = corel.DecodeCorelationId(p.Correlation).Sibling()
-	p.ctx = corel.NewCorelCtxFromCorel(p.corelid)
+	p.ctx = corel.NewContext(p.corelid)
 	return &p, nil
 }
 
@@ -54,11 +54,9 @@ func NewPacketFromStr(raw string, dst interface{}) (Packet, error) {
 
 // producer side of the app logic will use this constructor
 func NewPacketFromEntity(ctx context.Context, entity interface{}) Packet {
-	corelid, err := corel.GetCorelationId(ctx)
+	corelid, err := corel.ReadCorelId(ctx)
 	if err != nil {
-		//this will not happen mostly
-		ctx = corel.NewCorelCtx("anonym:production-" + reflect.TypeOf(entity).Name())
-		corelid, _ = corel.GetCorelationId(ctx)
+		corelid = corel.NewCorelId("anonym:production-" + reflect.TypeOf(entity).Name())
 	} else {
 		corelid = corelid.Child()
 	}
