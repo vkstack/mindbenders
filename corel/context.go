@@ -21,7 +21,7 @@ func NewChildContext(ctx context.Context, ids ...string) context.Context {
 	if len(ids) > 0 {
 		corelid = NewCorelId(ids...)
 	} else if corelid1, ok := ctx.Value(CtxCorelLocator).(*CoRelationId); ok {
-		corelid = corelid1
+		corelid = corelid1.Child()
 	} else {
 		corelid = NewCorelId()
 	}
