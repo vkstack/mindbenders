@@ -37,7 +37,7 @@ func getLogFileName(app string) string {
 	return fmt.Sprintf("app-%s.log", host)
 }
 
-func getZap(app string) *zap.Logger {
+func getZap(app string, stdout bool) *zap.Logger {
 	var zencconf zapcore.EncoderConfig
 	var zsyncer = zapcore.AddSync(&lumberjack.Logger{
 		Filename:   path.Join(getlogdir(), getLogFileName(app)),
@@ -46,8 +46,10 @@ func getZap(app string) *zap.Logger {
 		MaxBackups: 20,
 		MaxAge:     20,
 	})
-	if os.Getenv("ENV") == "dev" {
+	if os.Getenv("ENV") == "dev" && stdout {
 		zsyncer = zapcore.NewMultiWriteSyncer(zsyncer, os.Stdout)
+		zencconf = zap.NewDevelopmentEncoderConfig()
+	} else if os.Getenv("ENV") == "dev" {
 		zencconf = zap.NewDevelopmentEncoderConfig()
 	} else {
 		zencconf = zap.NewProductionEncoderConfig()

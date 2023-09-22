@@ -27,10 +27,8 @@ func WithLogOptions(opts ...logOption) Option {
 	}
 }
 
-func WithZap(dlogger *dlogger) {
-	dlogger.iszap = true
-}
+func WithZap(dlogger *dlogger) { dlogger.iszap = true }
 
-func WithZero(dlogger *dlogger) {
-	dlogger.iszap = false
-}
+func WithZero(dlogger *dlogger) { dlogger.iszap = false }
+
+func DisabledStdLogging(dlogger *dlogger) { dlogger.disableStdout = true }

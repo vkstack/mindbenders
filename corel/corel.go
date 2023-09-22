@@ -115,16 +115,16 @@ func NewCorelId(ids ...string) *CoRelationId {
 		RequestSource: "",
 	}
 	switch x := len(ids); {
-	case x >= 4:
+	case x > 3:
 		corelid.RequestSource = ids[3]
 		fallthrough
-	case x >= 3:
+	case x > 2:
 		corelid.AppRequestId = ids[2]
 		fallthrough
-	case x >= 2:
+	case x > 1:
 		corelid.RequestId = ids[1]
 		fallthrough
-	case x >= 1:
+	case x > 0:
 		corelid.SessionId = ids[0]
 	}
 	corelid.init(context.TODO())

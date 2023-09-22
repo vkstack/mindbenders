@@ -25,10 +25,11 @@ type dlogger struct {
 	zap   *zap.Logger
 	iszap bool
 
-	zero     *zerolog.Logger
-	writer   func(Fields, Level, string)
-	accopts  []accessLogOption
-	loptions []logOption
+	zero          *zerolog.Logger
+	writer        func(Fields, Level, string)
+	accopts       []accessLogOption
+	loptions      []logOption
+	disableStdout bool
 
 	fieldexecutor         []func(Fields)
 	metricCollectionLevel Level

@@ -9,7 +9,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func getZero(app string) *zerolog.Logger {
+func getZero(app string, stdout bool) *zerolog.Logger {
 	rotator := zerolog.MultiLevelWriter(&lumberjack.Logger{
 		Filename:   path.Join(getlogdir(), getLogFileName(app)),
 		MaxSize:    logMaxSize,
@@ -18,7 +18,7 @@ func getZero(app string) *zerolog.Logger {
 		MaxAge:     20,
 	})
 	var multi zerolog.LevelWriter
-	if os.Getenv("ENV") == "dev" {
+	if os.Getenv("ENV") == "dev" && stdout {
 		multi = zerolog.MultiLevelWriter(rotator, os.Stdout)
 	} else {
 		multi = zerolog.MultiLevelWriter(rotator)

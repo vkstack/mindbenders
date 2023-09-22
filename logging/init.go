@@ -23,10 +23,10 @@ func getlogger(opts ...Option) *dlogger {
 	}
 	loggr.fieldexecutor = append(loggr.fieldexecutor, fieldNormalize, caller, checkReservedKeys)
 	if loggr.iszap {
-		loggr.zap = getZap(loggr.app)
+		loggr.zap = getZap(loggr.app, !loggr.disableStdout)
 		loggr.writer = loggr.zapWrite
 	} else {
-		loggr.zero = getZero(loggr.app)
+		loggr.zero = getZero(loggr.app, !loggr.disableStdout)
 		loggr.writer = loggr.zeroWrite
 	}
 	if err := loggr.finalizeEssentials(); err != nil {
