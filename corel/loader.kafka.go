@@ -27,8 +27,8 @@ func KafkaCorelLoader(ctx context.Context, headers []kafka.Header) []kafka.Heade
 
 // This will be used to load corel from kafka message's header to context
 // unloading of corel info from header and loading it in ctx
-func KafkaCorelUnLoader(ctx context.Context, headers *[]kafka.Header) context.Context {
-	for _, headr := range *headers {
+func KafkaCorelUnLoader(ctx context.Context, headers []kafka.Header) context.Context {
+	for _, headr := range headers {
 		if headr.Key == string(CtxCorelLocator) {
 			corelid := DecodeCorelationId(string(headr.Value)).Sibling()
 			return context.WithValue(ctx, CtxCorelLocator, corelid)
