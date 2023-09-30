@@ -7,9 +7,10 @@ import (
 )
 
 // unloading of corel info from ctx and loading it in kafka header
-func AmqpLoader(ctx context.Context, headers amqp.Table) {
+func AmqpLoader(ctx context.Context, headers amqp.Table) amqp.Table {
 	corelid := GetCorelationId(ctx)
 	headers[string(CtxCorelLocator)] = corelid.Child().Enc()
+	return headers
 }
 
 // This will be used to load corel from kafka message's header to context

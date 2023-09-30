@@ -10,9 +10,10 @@ import (
 /*
 * inside header it will write `Corel`="base64 of json"
  */
-func HttpCorelLoader(ctx context.Context, header http.Header) {
+func HttpCorelLoader(ctx context.Context, header http.Header) http.Header {
 	corelid := GetCorelationId(ctx)
 	header.Set(string(CtxCorelLocator), corelid.Child().Enc())
+	return header
 }
 
 /*
