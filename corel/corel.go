@@ -1,65 +1,23 @@
 package corel
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
-	"sync"
 
-	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
-	"gitlab.com/dotpe/mindbenders/errors"
 )
 
 // CoRelationId correlationData
 type CoRelationId struct {
-	RequestId string `json:"requestId" header:"request_id"`
-	SessionId string `json:"sessionId" header:"session_id"`
-	Auth      string `header:"Authorization"`
-	JWT       *jwtinfo
-
+	SessionId,
+	RequestId,
 	AppRequestId,
-	RequestSource string
-
+	RequestSource,
 	enc string
-
-	once sync.Once
 }
 
 func (corelid *CoRelationId) Enc() string { return corelid.enc }
-
-type jwtinfo struct {
-	SessionId string `json:"sessionID" header:"session_id" validate:"required"`
-}
-
-func (corelid *CoRelationId) init(ctx context.Context) {
-	corelid.once.Do(func() {
-		if gc, ok := ctx.(*gin.Context); ok {
-			gc.ShouldBindHeader(&corelid)
-			rawcorel := gc.Request.Header.Get(string(CtxCorelLocator))
-			if len(rawcorel) > 0 {
-				if err := DecodeCorel(rawcorel, corelid); err == nil {
-					return
-				}
-				corelid.enc = rawcorel
-			}
-		}
-		if len(corelid.RequestId) == 0 {
-			corelid.loadAuth()
-			corelid.RequestId = xid.New().String()
-		}
-		if len(corelid.AppRequestId) == 0 {
-			corelid.AppRequestId = xid.New().String()
-		}
-		if corelid.JWT != nil && corelid.JWT.SessionId != "" {
-			corelid.SessionId = corelid.JWT.SessionId
-		} else if len(corelid.SessionId) == 0 {
-			corelid.SessionId = "null-" + corelid.RequestId
-		}
-		corelid.enc = EncodeCorel(corelid)
-	})
-}
 
 func (corelid *CoRelationId) Child() *CoRelationId {
 	return NewCorelId(
@@ -76,20 +34,6 @@ func (corelid *CoRelationId) Sibling() *CoRelationId {
 		corelid.RequestId,
 		xid.New().String(),
 	)
-}
-
-func (jwt *jwtinfo) UnmarshalJSON(raw []byte) error {
-	var x struct {
-		SessionId string `json:"sessionID"`
-	}
-	if err := json.Unmarshal(raw, &x); err != nil {
-		return err
-	}
-	if x.SessionId == "" {
-		return errors.New("invalid sessionId")
-	}
-	*jwt = jwtinfo(x)
-	return nil
 }
 
 func (corelid *CoRelationId) GetSessionId() string {
@@ -109,7 +53,7 @@ ids[4] - requestSource
 func NewCorelId(ids ...string) *CoRelationId {
 	var tmp = xid.New().String()
 	var corelid = CoRelationId{
-		SessionId:     tmp,
+		SessionId:     "null-" + tmp,
 		RequestId:     tmp,
 		AppRequestId:  tmp,
 		RequestSource: "",
@@ -127,6 +71,25 @@ func NewCorelId(ids ...string) *CoRelationId {
 	case x > 0:
 		corelid.SessionId = ids[0]
 	}
-	corelid.init(context.TODO())
+	corelid.enc = EncodeCorel(&corelid)
 	return &corelid
+}
+
+func NewCorelIdFromHttp(header http.Header) *CoRelationId {
+	if sessid := header.Get("session_id"); len(sessid) > 0 {
+		return NewCorelId(sessid)
+	}
+	if auth := header.Get("Authorization"); len(auth) > 0 {
+		if sessId := getJWTSession(auth); len(sessId) > 0 {
+			return NewCorelId(sessId)
+		}
+	}
+	if rawcorel := header.Get(string(CtxCorelLocator)); len(rawcorel) > 0 {
+		var corelid *CoRelationId
+		if err := DecodeCorel(rawcorel, corelid); err == nil {
+			corelid.enc = rawcorel
+			return corelid
+		}
+	}
+	return NewCorelId()
 }

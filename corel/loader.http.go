@@ -20,8 +20,7 @@ func HttpCorelLoader(ctx context.Context, header http.Header) http.Header {
 *The below Unloader will work with gin.Context only.
  */
 func HttpCorelUnLoader(ctx context.Context, header http.Header) context.Context {
-	enc := header.Get(string(CtxCorelLocator))
-	corelid := DecodeCorelationId(enc)
+	corelid := NewCorelIdFromHttp(header)
 	if gc, ok := ctx.(*gin.Context); ok {
 		gc.Set(string(CtxCorelLocator), corelid)
 		return gc
