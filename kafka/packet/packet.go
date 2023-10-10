@@ -54,8 +54,8 @@ func NewPacketFromStr(raw string, dst interface{}) (Packet, error) {
 
 // producer side of the app logic will use this constructor
 func NewPacketFromEntity(ctx context.Context, entity interface{}) Packet {
-	corelid, err := corel.ReadCorelId(ctx)
-	if err != nil {
+	corelid, _ := corel.ReadCorelId(ctx)
+	if corelid == nil {
 		corelid = corel.NewCorelId("anonym:production-" + reflect.TypeOf(entity).Name())
 	} else {
 		corelid = corelid.Child()

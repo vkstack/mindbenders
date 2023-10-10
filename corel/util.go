@@ -17,21 +17,6 @@ type corelstr string
 
 const CtxCorelLocator corelstr = "corel"
 
-func (corelid *CoRelationId) loadAuth() error {
-	if len(corelid.Auth) > 0 && corelid.Auth != "unknownToken" {
-		parts := strings.Split(corelid.Auth, ".")
-		if len(parts) < 2 {
-			return errors.New("invalid auth provided")
-		}
-		raw, err := jwt.DecodeSegment(parts[1])
-		if err != nil {
-			return errors.WrapMessage(err, "JWT decoding failed")
-		}
-		return json.Unmarshal(raw, &corelid.JWT)
-	}
-	return nil
-}
-
 func ReadCorelId(ctx context.Context) (*CoRelationId, error) {
 	if ctx == nil {
 		return nil, errors.New("nil context")
@@ -52,10 +37,13 @@ func ReadCorelId(ctx context.Context) (*CoRelationId, error) {
 // concurrent unsafe
 // it adds corelId if not found
 func GetCorelationId(ctx context.Context) *CoRelationId {
-	corelid, err := ReadCorelId(ctx)
-	if err != nil || corelid == nil {
-		var corelid = new(CoRelationId)
-		corelid.init(ctx)
+	corelid, _ := ReadCorelId(ctx)
+	if corelid == nil {
+		if c, ok := ctx.(*gin.Context); ok {
+			corelid = NewCorelIdHttp(c.Request.Header)
+		} else {
+			corelid = NewCorelId()
+		}
 		if c, ok := ctx.(*gin.Context); ok {
 			c.Set(string(CtxCorelLocator), corelid)
 		}
@@ -85,6 +73,23 @@ func DecodeCorelationId(encoded string) *CoRelationId {
 		return NewCorelId()
 	}
 	corel.enc = encoded
-	corel.once.Do(func() {})
 	return &corel
+}
+
+func getJWTSession(token string) string {
+	parts := strings.Split(token, ".")
+	if len(parts) < 2 {
+		return ""
+	}
+	raw, err := jwt.DecodeSegment(parts[1])
+	if err != nil {
+		return ""
+	}
+	var jwtinfo struct {
+		SessionId string `json:"sessionID" header:"session_id" validate:"required"`
+	}
+	if err := json.Unmarshal(raw, &jwtinfo); err != nil {
+		return ""
+	}
+	return jwtinfo.SessionId
 }
