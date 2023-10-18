@@ -1,3 +1,5 @@
+// The code defines a Go package called "corel" that provides functionality for generating and managing
+// correlation IDs.
 package corel
 
 import (
@@ -86,7 +88,7 @@ func NewCorelIdFromHttp(header http.Header) *CoRelationId {
 	}
 	if rawcorel := header.Get(string(CtxCorelLocator)); len(rawcorel) > 0 {
 		var corelid *CoRelationId
-		if err := DecodeCorel(rawcorel, corelid); err == nil {
+		if err := DecodeCorel(rawcorel, &corelid); err == nil {
 			corelid.enc = rawcorel
 			return corelid
 		}

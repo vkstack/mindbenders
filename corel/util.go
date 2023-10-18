@@ -68,12 +68,12 @@ func DecodeCorel(str string, dst interface{}) error {
 }
 
 func DecodeCorelationId(encoded string) *CoRelationId {
-	var corel CoRelationId
+	var corel *CoRelationId
 	if err := DecodeCorel(encoded, &corel); err != nil {
 		return NewCorelId()
 	}
 	corel.enc = encoded
-	return &corel
+	return corel
 }
 
 func getJWTSession(token string) string {
