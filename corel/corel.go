@@ -19,8 +19,6 @@ type CoRelationId struct {
 	enc string
 }
 
-func (corelid *CoRelationId) Enc() string { return corelid.enc }
-
 func (corelid *CoRelationId) Child() *CoRelationId {
 	return NewCorelId(
 		corelid.SessionId,
@@ -87,9 +85,7 @@ func NewCorelIdFromHttp(header http.Header) *CoRelationId {
 		}
 	}
 	if rawcorel := header.Get(string(CtxCorelLocator)); len(rawcorel) > 0 {
-		var corelid *CoRelationId
-		if err := DecodeCorel(rawcorel, &corelid); err == nil {
-			corelid.enc = rawcorel
+		if corelid, err := DecodeCorel([]byte(rawcorel)); err == nil {
 			return corelid
 		}
 	}

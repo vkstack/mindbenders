@@ -10,7 +10,7 @@ import (
 func KafkaCorelLoader(ctx context.Context, headers []kafka.Header) []kafka.Header {
 	cheader := kafka.Header{
 		Key:   string(CtxCorelLocator),
-		Value: []byte(GetCorelationId(ctx).Child().Enc()),
+		Value: []byte(EncodeCorel(GetCorelationId(ctx).Child())),
 	}
 	if len(headers) == 0 {
 		return []kafka.Header{cheader}
@@ -30,7 +30,12 @@ func KafkaCorelLoader(ctx context.Context, headers []kafka.Header) []kafka.Heade
 func KafkaCorelUnLoader(ctx context.Context, headers []kafka.Header) context.Context {
 	for _, headr := range headers {
 		if headr.Key == string(CtxCorelLocator) {
-			corelid := DecodeCorelationId(string(headr.Value)).Sibling()
+			corelid, _ := DecodeCorel(headr.Value)
+			if corelid == nil {
+				corelid = NewCorelId()
+			} else {
+				corelid = corelid.Sibling()
+			}
 			return context.WithValue(ctx, CtxCorelLocator, corelid)
 		}
 	}

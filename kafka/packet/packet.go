@@ -43,7 +43,10 @@ func NewPacket(raw []byte, dst interface{}) (Packet, error) {
 	if err := json.Unmarshal(raw, &p); err != nil {
 		return nil, err
 	}
-	p.corelid = corel.DecodeCorelationId(p.Correlation).Sibling()
+	p.corelid, _ = corel.DecodeCorel([]byte(p.Correlation))
+	if p.corelid == nil {
+		p.corelid = corel.NewCorelId()
+	}
 	p.ctx = corel.NewContext(p.corelid)
 	return &p, nil
 }

@@ -12,7 +12,7 @@ import (
  */
 func HttpCorelLoader(ctx context.Context, header http.Header) http.Header {
 	corelid := GetCorelationId(ctx)
-	header.Set(string(CtxCorelLocator), corelid.Child().Enc())
+	header.Set(string(CtxCorelLocator), EncodeCorel(corelid.Child()))
 	return header
 }
 

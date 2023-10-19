@@ -4,13 +4,15 @@ import (
 	"context"
 	"reflect"
 	"testing"
+
+	"github.com/rs/xid"
 )
 
 func TestEncodeCorel(t *testing.T) {
 	type args struct {
 		corelId *CoRelationId
 	}
-	corelId := NewCorelId("sessionId")
+	corelId := NewCorelId(xid.New().String(), xid.New().String(), xid.New().String(), "aggregator-"+xid.New().String())
 	tests := []struct {
 		name string
 		args args
@@ -26,7 +28,7 @@ func TestEncodeCorel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := EncodeCorel(tt.args.corelId)
-			x := DecodeCorelationId(got)
+			x, _ := DecodeCorel([]byte(got))
 			ok := reflect.DeepEqual(&x, tt.args.corelId)
 			if ok && got != tt.want {
 				t.Errorf("EncodeCorel() = %v, want %v", got, tt.want)

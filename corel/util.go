@@ -1,9 +1,11 @@
 package corel
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"gitlab.com/dotpe/mindbenders/errors"
 
@@ -51,29 +53,32 @@ func GetCorelationId(ctx context.Context) *CoRelationId {
 	return corelid
 }
 
-func EncodeCorel(corelId *CoRelationId) string {
-	raw, _ := json.Marshal(corelId)
-	return base64.StdEncoding.EncodeToString(raw)
+var encoder = base64.StdEncoding
+
+const encsep = "\t"
+
+func EncodeCorel(corelid *CoRelationId) string {
+	if len(corelid.enc) == 0 {
+		corelid.enc = fmt.Sprintf("%s%s%s%s%s%s%s", corelid.SessionId, encsep, corelid.RequestId, encsep, corelid.AppRequestId, encsep, corelid.RequestSource)
+		corelid.enc = encoder.EncodeToString([]byte(corelid.enc))
+	}
+	return corelid.enc
 }
 
-func DecodeCorel(str string, dst interface{}) error {
-	rawbyte, err := base64.StdEncoding.DecodeString(str)
+func DecodeCorel(encoded []byte) (corelid *CoRelationId, err error) {
+	var decoded []byte = make([]byte, encoder.DecodedLen(len(encoded)))
+	n, err := encoder.Decode(decoded, encoded)
 	if err != nil {
-		return errors.WrapMessage(err, "base64 to corel struct decoding failed")
+		return nil, err
 	}
-	if err := json.Unmarshal(rawbyte, &dst); err != nil {
-		return errors.WrapMessage(err, "raw base64 to corel struct unmarshalling failed")
+	decoded = decoded[:n]
+	if parts := bytes.Split(decoded, []byte(encsep)); len(parts) >= 4 {
+		corelid = new(CoRelationId)
+		corelid.enc = string(encoded)
+		corelid.SessionId, corelid.RequestId = string(parts[0]), string(parts[1])
+		corelid.AppRequestId, corelid.RequestSource = string(parts[2]), string(parts[3])
 	}
-	return nil
-}
-
-func DecodeCorelationId(encoded string) *CoRelationId {
-	var corel *CoRelationId
-	if err := DecodeCorel(encoded, &corel); err != nil {
-		return NewCorelId()
-	}
-	corel.enc = encoded
-	return corel
+	return corelid, errors.New("invalid encoded corel")
 }
 
 func getJWTSession(token string) string {
