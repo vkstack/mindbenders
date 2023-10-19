@@ -77,8 +77,9 @@ func DecodeCorel(encoded []byte) (corelid *CoRelationId, err error) {
 		corelid.enc = string(encoded)
 		corelid.SessionId, corelid.RequestId = string(parts[0]), string(parts[1])
 		corelid.AppRequestId, corelid.RequestSource = string(parts[2]), string(parts[3])
+		return corelid, nil
 	}
-	return corelid, errors.New("invalid encoded corel")
+	return nil, errors.New("invalid encoded corel")
 }
 
 func getJWTSession(token string) string {
