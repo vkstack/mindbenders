@@ -28,6 +28,6 @@ func NewChildContext(ctx context.Context, ids ...string) context.Context {
 	return context.WithValue(ctx, CtxCorelLocator, corelid)
 }
 
-func NewOrphenContext(ids ...string) context.Context {
+func NewOrphanContext(ids ...string) context.Context {
 	return NewChildContext(context.Background(), ids...)
 }
