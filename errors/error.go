@@ -86,3 +86,10 @@ func Code(err error) string {
 	}
 	return ""
 }
+
+func String(err error) string {
+	if stringer, ok := err.(fmt.Stringer); ok {
+		return stringer.String()
+	}
+	return err.Error()
+}
